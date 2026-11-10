@@ -1,0 +1,149 @@
+# `@jcdfr/ng-deco/week-numbers`
+
+**Week number** column (ISO 8601 by default) on the left of the Angular Material calendar:
+`mat-datepicker`, `mat-date-range-picker` and inline `mat-calendar`.
+
+Verified against **Angular / Angular Material 22.2** — zoneless, SSR-compatible (no-op on the server).
+
+**Requires `DateFnsAdapter`** (`@angular/material-date-fns-adapter`, `date-fns` v4). With another
+adapter, the column is not displayed and an error is logged in dev mode.
+
+## Installation in the library
+
+Copy the `week-numbers/` folder to the root of the library project (next to the other secondary
+entry points). Its `ng-package.json` declares it as the `@jcdfr/ng-deco/week-numbers` entry point.
+
+Peer dependencies of the library: `@angular/core`, `@angular/material`,
+`@angular/material-date-fns-adapter`, `date-fns`. No stylesheet to import: styles ship with the
+component (`ViewEncapsulation.None`).
+
+## Usage
+
+```ts
+import { DcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
+
+@Component({ imports: [MatDatepickerModule, DcWeekNumbers], … })
+```
+
+```html
+<mat-datepicker dcWeekNumbers />
+<mat-date-range-picker dcWeekNumbers />
+<mat-calendar dcWeekNumbers />
+```
+
+Rows start on the date-fns locale's `weekStartsOn` (Monday for `fr`, Sunday for `enUS`,
+Saturday for `faIR`…). By default each row shows the **ISO 8601** week of its Monday — the
+European standard, identical to the locale numbering for `fr`. Week numbers use the same digits
+as the day cells (Arabic-Indic for `arEG`, Bengali for `bn`, Persian for `faIR`…), and follow
+`DateAdapter#setLocale()` at runtime.
+
+### Tested locales
+
+`week-numbers.locales.spec.ts` checks **every locale exported by `date-fns/locale`** (95)
+against independent oracles (week numbers recomputed from their definition, digits from the
+numbering system Intl resolves, rows located from the rendered DOM):
+
+- both strategies (`dcIsoWeekNumber`, `dcLocaleWeekNumber`), every week from 2000 to 2040;
+- the rendered calendar (column alignment, ISO number, digits), every month from 2024 to 2028.
+
+### Known limitation of Material with `faIR`
+
+`DateFnsAdapter` renders day numbers with `Intl.DateTimeFormat(locale.code)`, whose default
+calendar for `fa-IR` is the **Persian calendar**: Material shows Persian day numbers in a
+Gregorian grid (e.g. January 1st is displayed as "۱۲"). This is a Material issue, independent
+of this component (week numbers stay correct). Workaround at the application level: force the
+Gregorian calendar in the locale code.
+
+```ts
+{ provide: MAT_DATE_LOCALE, useValue: { ...faIR, code: 'fa-IR-u-ca-gregory' } }
+```
+
+## Customization
+
+### Labels (i18n)
+
+```ts
+@Injectable()
+export class MyWeekNumbersIntl extends DcWeekNumbersIntl {
+  override readonly columnHeader = signal('Wk');
+  override readonly columnHeaderLabel = signal('Week number');
+  override readonly weekLabel = signal((n: number) => `Week ${n}`);
+}
+
+providers: [{ provide: DcWeekNumbersIntl, useClass: MyWeekNumbersIntl }];
+```
+
+The signals can also be updated at runtime: an open calendar updates automatically.
+
+### Numbering
+
+```ts
+import { dcLocaleWeekNumber, provideDcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
+
+providers: [
+  // Locale numbering (weekStartsOn + firstWeekContainsDate), e.g. US numbering for enUS
+  provideDcWeekNumbers({ weekNumberFn: dcLocaleWeekNumber }),
+];
+```
+
+| Strategy                    | Week number of a row                   |
+| --------------------------- | -------------------------------------- |
+| `dcIsoWeekNumber` (default) | ISO 8601 week of the row's Monday      |
+| `dcLocaleWeekNumber`        | week as defined by the date-fns locale |
+
+⚠️ date-fns locale data does not always match the official convention of the country:
+`es` declares `firstWeekContainsDate: 1` while Spain uses ISO 8601. Keep the ISO default unless
+the audience expects its locale-specific numbering.
+
+A custom `weekNumberFn: (rowStart: Date, adapter: DateFnsAdapter) => number` can be provided,
+as well as `formatWeekNumber` (default: `dcFormatWeekNumber`, same digits as the day cells).
+
+### CSS variables
+
+| Variable                          | Default                        |
+| --------------------------------- | ------------------------------ |
+| `--dc-week-numbers-column-width`  | `28px`                         |
+| `--dc-week-numbers-color`         | `--mat-sys-on-surface-variant` |
+| `--dc-week-numbers-header-color`  | datepicker header token        |
+| `--dc-week-numbers-divider-color` | `--mat-sys-outline-variant`    |
+
+### Custom header
+
+The directive takes over the calendar's header slot. A custom header is therefore passed
+**to the directive**, instead of `[calendarHeaderComponent]` / `[headerComponent]`:
+
+```html
+<mat-datepicker [dcWeekNumbers]="MyHeader" />
+<mat-date-range-picker [dcWeekNumbers]="MyHeader" />
+<mat-calendar [dcWeekNumbers]="MyHeader" />
+```
+
+`MyHeader` is written exactly like a regular `calendarHeaderComponent`: it is rendered inside
+the calendar and can inject `MatCalendar`, `DateAdapter`, etc. It can change at runtime.
+
+- Binding `[calendarHeaderComponent]` **on top of** `dcWeekNumbers` overrides the directive's
+  header: no more column. A `console.warn` reports it in dev mode.
+- Alternative without the directive: add `DcWeekNumbersController` to the custom header
+  (`hostDirectives: [DcWeekNumbersController]`) and bind it through `[calendarHeaderComponent]`.
+  If that header is also passed to `[dcWeekNumbers]`, only one controller acts (no duplicated column).
+
+## Accessibility
+
+- Column header: `<th scope="col">` with a long label for screen readers.
+- Each row: `<th scope="row">` "Week 45", announced together with the days of the row.
+- Material keyboard navigation is unaffected (it relies on `data-mat-row/col`).
+- RTL: the column follows the text direction (logical CSS properties).
+
+## Limitations — worth knowing
+
+Material exposes **no API** for this feature. This secondary entry point:
+
+- relies on the **internal DOM** of `mat-month-view` (`.mat-calendar-table`, `data-mat-row`,
+  `thead` structure);
+- overrides the inline padding of the cells with `!important` (to keep square day cells),
+  limited to tables that carry the column.
+
+This is a deliberate, isolated exception to the library's "public APIs only" rule:
+**run `week-numbers.spec.ts` again on every Material upgrade.**
+If the entry point lives outside `src/`, include it in the tests:
+`ng test ng-deco --include='../week-numbers/**/*.spec.ts'` (or through the builder's `include`).

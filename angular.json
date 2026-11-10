@@ -78,6 +78,42 @@
           }
         }
       }
+    },
+    "week-numbers": {
+      "projectType": "library",
+      "root": "projects/week-numbers",
+      "sourceRoot": "projects/week-numbers/src",
+      "prefix": "dc",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/week-numbers/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/week-numbers/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "projects/week-numbers/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "projects/week-numbers/**/*.ts",
+              "projects/week-numbers/**/*.html"
+            ],
+            "eslintConfig": "projects/week-numbers/eslint.config.js"
+          }
+        }
+      }
     }
   }
 }

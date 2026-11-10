@@ -1,0 +1,75 @@
+// Week number column of mat-calendar.
+// Global styles (the calendar lives in the overlay), scoped by the `.dc-week-numbers` class
+// that DcWeekNumbersController sets on the <mat-calendar>.
+//
+// Customization through CSS variables:
+//   --dc-week-numbers-column-width   column width (default 28px)
+//   --dc-week-numbers-color          week number color
+//   --dc-week-numbers-header-color   column header color
+//   --dc-week-numbers-divider-color  vertical divider color
+
+.mat-calendar.dc-week-numbers {
+  --_dc-wn-width: var(--dc-week-numbers-column-width, 28px);
+
+  .dc-week-number {
+    width: var(--_dc-wn-width);
+    min-width: var(--_dc-wn-width);
+    padding-inline: 0;
+    text-align: center;
+    vertical-align: middle;
+    box-sizing: border-box;
+    border-inline-end: 1px solid
+      var(--dc-week-numbers-divider-color, var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.12)));
+  }
+
+  thead .dc-week-number {
+    color: var(
+      --dc-week-numbers-header-color,
+      var(--mat-datepicker-calendar-header-text-color, var(--mat-sys-on-surface-variant))
+    );
+    font-size: var(--mat-datepicker-calendar-header-text-size, var(--mat-sys-title-small-size));
+    font-weight: var(
+      --mat-datepicker-calendar-header-text-weight,
+      var(--mat-sys-title-small-weight)
+    );
+  }
+
+  tbody .dc-week-number {
+    // Like Material day cells: the height comes from the (percentage) padding only,
+    // the content is absolutely positioned so it does not grow the row.
+    position: relative;
+    color: var(--dc-week-numbers-color, var(--mat-sys-on-surface-variant));
+    font-size: var(--mat-sys-label-small-size, 11px);
+    font-weight: var(--mat-sys-label-small-weight, 500);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+    // the divider stops at the month body (not on the "NOV." label row)
+    &[aria-hidden='true'] {
+      border-inline-end-color: transparent;
+    }
+  }
+
+  // Material sizes cell height with an inline padding of 100% / 14 of the table width
+  // (square cells). The extra column widens the table: its width is subtracted from the
+  // computation to keep day cells square, as in the native calendar.
+  // `!important` is the only way to beat an inline style; the rule is limited to tables
+  // that carry the column.
+  .mat-calendar-table:has(.dc-week-number) tbody > tr > :is(td, th) {
+    padding-block: calc((100% - var(--_dc-wn-width)) / 14) !important;
+  }
+
+  .dc-week-number-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// The popup datepicker has a fixed size (296 × 354): widen it by the column width
+// so day cells keep the same size.
+.mat-datepicker-content .mat-calendar.dc-week-numbers {
+  width: calc(296px + var(--dc-week-numbers-column-width, 28px));
+  height: auto;
+}
