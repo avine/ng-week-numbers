@@ -1,13 +1,5 @@
 import { NgComponentOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  isDevMode,
-  Type,
-  ViewEncapsulation,
-} from '@angular/core';
+import { Component, computed, inject, isDevMode, Type, ViewEncapsulation } from '@angular/core';
 import { MatCalendarHeader } from '@angular/material/datepicker';
 import { DcWeekNumbersController } from './week-numbers-controller';
 import { DC_WEEK_NUMBERS_HOST } from './week-numbers-host';
@@ -26,25 +18,24 @@ import { DC_WEEK_NUMBERS_HOST } from './week-numbers-host';
  */
 @Component({
   selector: 'dc-week-number-header',
-  imports: [NgComponentOutlet],
   hostDirectives: [DcWeekNumbersController],
-  template: `<ng-container *ngComponentOutlet="header()" />`,
+  imports: [NgComponentOutlet],
+  template: `<ng-container *ngComponentOutlet="calendarHeader()" />`,
   styleUrl: './week-numbers.scss',
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DcWeekNumberHeader {
   private readonly host = inject(DC_WEEK_NUMBERS_HOST, { optional: true });
 
-  protected readonly header = computed<Type<unknown>>(() => {
-    const inner = this.host?.innerHeader() ?? null;
-    if (inner === DcWeekNumberHeader) {
+  protected readonly calendarHeader = computed<Type<unknown>>(() => {
+    const hostCalendarHeader = this.host?.calendarHeader() ?? null;
+    if (hostCalendarHeader === DcWeekNumberHeader) {
       // [dcWeekNumbers]="DcWeekNumberHeader" → infinite recursion
       if (isDevMode()) {
         console.warn('[dcWeekNumbers] DcWeekNumberHeader cannot wrap itself.');
       }
       return MatCalendarHeader;
     }
-    return inner ?? MatCalendarHeader;
+    return hostCalendarHeader ?? MatCalendarHeader;
   });
 }

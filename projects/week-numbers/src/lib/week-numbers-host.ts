@@ -10,7 +10,7 @@ import { InjectionToken, Signal, Type } from '@angular/core';
  */
 export interface DcWeekNumbersHost {
   /** Header rendered inside `DcWeekNumberHeader`; `null` → standard Material header. */
-  readonly innerHeader: Signal<Type<unknown> | null>;
+  readonly calendarHeader: Signal<Type<unknown> | null>;
 }
 
 export const DC_WEEK_NUMBERS_HOST = new InjectionToken<DcWeekNumbersHost>('DC_WEEK_NUMBERS_HOST');

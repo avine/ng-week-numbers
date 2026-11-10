@@ -1,4 +1,4 @@
-import { computed, Directive, inject, input, isDevMode, OnInit, Type } from '@angular/core';
+import { afterNextRender, Directive, inject, input, isDevMode, Type } from '@angular/core';
 import { MatCalendar, MatDatepicker, MatDateRangePicker } from '@angular/material/datepicker';
 import { DcWeekNumberHeader } from './week-number-header';
 import { DC_WEEK_NUMBERS_HOST, DcWeekNumbersHost } from './week-numbers-host';
@@ -23,38 +23,46 @@ import { DC_WEEK_NUMBERS_HOST, DcWeekNumbersHost } from './week-numbers-host';
     'mat-datepicker[dcWeekNumbers], mat-date-range-picker[dcWeekNumbers], mat-calendar[dcWeekNumbers]',
   providers: [{ provide: DC_WEEK_NUMBERS_HOST, useExisting: DcWeekNumbers }],
 })
-export class DcWeekNumbers implements DcWeekNumbersHost, OnInit {
+export class DcWeekNumbers implements DcWeekNumbersHost {
   /** Alternative header displayed above the calendar. Empty → standard Material header. */
-  readonly dcWeekNumbers = input<Type<unknown> | '' | null | undefined>();
-
-  readonly innerHeader = computed(() => this.dcWeekNumbers() || null);
+  readonly calendarHeader = input(null, {
+    alias: 'dcWeekNumbers',
+    transform: (value: Type<unknown> | '' | null | undefined): Type<unknown> | null =>
+      value || null,
+  });
 
   private readonly picker =
     inject(MatDatepicker, { self: true, optional: true }) ??
     inject(MatDateRangePicker, { self: true, optional: true });
+
   private readonly calendar = inject(MatCalendar, { self: true, optional: true });
 
   constructor() {
-    this.setHeader(DcWeekNumberHeader);
-  }
+    this.setHeaderComponent(DcWeekNumberHeader);
 
-  ngOnInit(): void {
-    // Template inputs are applied after the constructor: a [calendarHeaderComponent] /
-    // [headerComponent] bound on top of the directive would have overridden our header.
-    if (isDevMode() && this.getHeader() !== DcWeekNumberHeader) {
-      console.warn(
-        '[dcWeekNumbers] The calendar header has been overridden, week numbers will not be ' +
-          'displayed. Pass the header to the directive instead: [dcWeekNumbers]="MyHeader".',
-      );
+    if (isDevMode()) {
+      // Template inputs are applied after the constructor: a [calendarHeaderComponent] /
+      // [headerComponent] bound on top of the directive would have overridden our header.
+      afterNextRender(() => {
+        if (this.getHeaderComponent() !== DcWeekNumberHeader) {
+          console.warn(
+            '[dcWeekNumbers] The calendar header has been overridden, week numbers will not be ' +
+              'displayed. Pass the header to the directive instead: [dcWeekNumbers]="MyHeader".',
+          );
+        }
+      });
     }
   }
 
-  private setHeader(header: Type<unknown>): void {
-    if (this.picker) this.picker.calendarHeaderComponent = header;
-    else if (this.calendar) this.calendar.headerComponent = header;
+  private setHeaderComponent(headerComponent: Type<unknown>): void {
+    if (this.picker) {
+      this.picker.calendarHeaderComponent = headerComponent;
+    } else if (this.calendar) {
+      this.calendar.headerComponent = headerComponent;
+    }
   }
 
-  private getHeader(): unknown {
+  private getHeaderComponent(): unknown {
     return this.picker ? this.picker.calendarHeaderComponent : this.calendar?.headerComponent;
   }
 }
