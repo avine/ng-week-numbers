@@ -12,7 +12,7 @@ import { DC_WEEK_NUMBERS_HOST, DcWeekNumbersHost } from './week-numbers-host';
  * <mat-calendar dcWeekNumbers />
  *
  * <!-- with an alternative header (replaces [calendarHeaderComponent] / [headerComponent]) -->
- * <mat-datepicker [dcWeekNumbers]="MyHeader" />
+ * <mat-datepicker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
  * ```
  *
  * The directive takes over the calendar's header slot: a custom header must therefore be
@@ -25,10 +25,9 @@ import { DC_WEEK_NUMBERS_HOST, DcWeekNumbersHost } from './week-numbers-host';
 })
 export class DcWeekNumbers implements DcWeekNumbersHost {
   /** Alternative header displayed above the calendar. Empty → standard Material header. */
-  readonly calendarHeader = input(null, {
-    alias: 'dcWeekNumbers',
-    transform: (value: Type<unknown> | '' | null | undefined): Type<unknown> | null =>
-      value || null,
+  readonly calendarHeader = input<Type<unknown> | null>(null, {
+    // eslint-disable-next-line @angular-eslint/no-input-rename
+    alias: 'dcWeekNumbersCalendarHeader',
   });
 
   private readonly picker =
@@ -47,7 +46,7 @@ export class DcWeekNumbers implements DcWeekNumbersHost {
         if (this.getHeaderComponent() !== DcWeekNumberHeader) {
           console.warn(
             '[dcWeekNumbers] The calendar header has been overridden, week numbers will not be ' +
-              'displayed. Pass the header to the directive instead: [dcWeekNumbers]="MyHeader".',
+              'displayed. Pass the header to the directive instead: dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader".',
           );
         }
       });

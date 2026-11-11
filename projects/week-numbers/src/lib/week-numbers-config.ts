@@ -1,4 +1,4 @@
-import { EnvironmentProviders, InjectionToken, makeEnvironmentProviders } from '@angular/core';
+import { InjectionToken, Provider } from '@angular/core';
 import { DcWeekNumberFn, dcIsoWeekNumber } from './week-number-fns';
 
 /**
@@ -20,12 +20,13 @@ export const DC_WEEK_NUMBER_FN = new InjectionToken<DcWeekNumberFn>('DC_WEEK_NUM
 });
 
 /**
- * Overrides the week numbering.
+ * Overrides the week numbering, for the whole application or, like `provideDateFnsAdapter()`,
+ * for the calendars of a single component.
  *
  * ```ts
  * provideDcWeekNumberFn(dcLocaleWeekNumber) // locale numbering (e.g. US)
  * ```
  */
-export function provideDcWeekNumberFn(weekNumberFn: DcWeekNumberFn): EnvironmentProviders {
-  return makeEnvironmentProviders([{ provide: DC_WEEK_NUMBER_FN, useValue: weekNumberFn }]);
+export function provideDcWeekNumberFn(weekNumberFn: DcWeekNumberFn): Provider[] {
+  return [{ provide: DC_WEEK_NUMBER_FN, useValue: weekNumberFn }];
 }

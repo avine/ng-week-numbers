@@ -79,6 +79,29 @@ class Host {
   startAt = new Date(2026, 10, 5); // November 2026
 }
 
+/** Overrides the numbering for its own calendar only. */
+@Component({
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: 'test-overriding-calendar',
+  imports: [MatCalendar, DcWeekNumbers],
+  providers: [provideDcWeekNumberFn(() => 7)],
+  template: `<mat-calendar dcWeekNumbers [startAt]="startAt" />`,
+})
+class OverridingCalendar {
+  startAt = new Date(2026, 10, 5);
+}
+
+@Component({
+  imports: [MatCalendar, DcWeekNumbers, OverridingCalendar],
+  template: `
+    <mat-calendar class="app-calendar" dcWeekNumbers [startAt]="startAt" />
+    <test-overriding-calendar />
+  `,
+})
+class TwoCalendars {
+  startAt = new Date(2026, 10, 5);
+}
+
 const flush = async () => {
   await TestBed.inject(ApplicationRef).whenStable();
   await new Promise((r) => setTimeout(r)); // let the MutationObserver run
@@ -91,7 +114,7 @@ function weekNumbers(root: HTMLElement): string[] {
 }
 
 describe('DcWeekNumbers', () => {
-  function setup(extraProviders: unknown[] = []) {
+  function setup(extraProviders: unknown[] = [], component: Type<unknown> = Host) {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
@@ -101,7 +124,7 @@ describe('DcWeekNumbers', () => {
         ...(extraProviders as never[]),
       ],
     });
-    const fixture = TestBed.createComponent(Host);
+    const fixture = TestBed.createComponent(component);
     return { fixture, root: fixture.nativeElement as HTMLElement };
   }
 
@@ -171,6 +194,17 @@ describe('DcWeekNumbers', () => {
     expect(new Set(weekNumbers(root))).toEqual(new Set(['0']));
   });
 
+  it('accepts a numbering strategy provided by a component', async () => {
+    const { root } = setup([], TwoCalendars);
+    await flush();
+    expect(weekNumbers(root.querySelector('.app-calendar')!)).toEqual([
+      '44', '45', '46', '47', '48', '49',
+    ]);
+    expect(new Set(weekNumbers(root.querySelector('test-overriding-calendar')!))).toEqual(
+      new Set(['7']),
+    );
+  });
+
   it.each([
     ['en-US', '1'],
     ['fr', '2'],
@@ -214,13 +248,28 @@ class HeaderWithController {}
 @Component({
   imports: [MatCalendar, MatDatepickerModule, DcWeekNumbers],
   template: `
-    <mat-calendar class="inline" [dcWeekNumbers]="header()" [startAt]="startAt" />
+    <mat-calendar
+      class="inline"
+      dcWeekNumbers
+      [dcWeekNumbersCalendarHeader]="header()"
+      [startAt]="startAt"
+    />
     <input [matDatepicker]="picker" />
-    <mat-datepicker #picker [dcWeekNumbers]="header()" [startAt]="startAt" />
+    <mat-datepicker
+      #picker
+      dcWeekNumbers
+      [dcWeekNumbersCalendarHeader]="header()"
+      [startAt]="startAt"
+    />
     <mat-date-range-input [rangePicker]="range"
       ><input matStartDate /><input matEndDate
     /></mat-date-range-input>
-    <mat-date-range-picker #range [dcWeekNumbers]="header()" [startAt]="startAt" />
+    <mat-date-range-picker
+      #range
+      dcWeekNumbers
+      [dcWeekNumbersCalendarHeader]="header()"
+      [startAt]="startAt"
+    />
   `,
 })
 class CustomHost {
@@ -296,7 +345,7 @@ describe('DcWeekNumbers — alternative header', () => {
     expect(weekNumbers(inline)).toEqual(['44', '45', '46', '47', '48', '49']);
   });
 
-  it('[dcWeekNumbers]="DcWeekNumberHeader": no recursion, standard header', async () => {
+  it('dcWeekNumbers [dcWeekNumbersCalendarHeader]="DcWeekNumberHeader": no recursion, standard header', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     TestBed.configureTestingModule({ providers });
     const fixture = TestBed.createComponent(CustomHost);
@@ -313,7 +362,9 @@ describe('DcWeekNumbers — alternative header', () => {
     TestBed.configureTestingModule({ providers });
     TestBed.createComponent(ConflictHost);
     await flush();
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('[dcWeekNumbers]="MyHeader"'));
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader"'),
+    );
     warn.mockRestore();
   });
 });

@@ -105,6 +105,9 @@ providers: [
 `es` declares `firstWeekContainsDate: 1` while Spain uses ISO 8601. Keep the ISO default unless
 the audience expects its locale-specific numbering.
 
+`provideDcWeekNumberFn()` also works in the `providers` of a component, to change the numbering
+of its calendars only.
+
 A custom `DcWeekNumberFn` (`(rowStart: Date, adapter: DateFnsAdapter) => number`) can also be
 provided (e.g. fiscal weeks). Week numbers are always written with the same digits as the day
 cells.
@@ -159,9 +162,9 @@ The directive takes over the calendar's header slot. A custom header is therefor
 **to the directive**, instead of `[calendarHeaderComponent]` / `[headerComponent]`:
 
 ```html
-<mat-datepicker [dcWeekNumbers]="MyHeader" />
-<mat-date-range-picker [dcWeekNumbers]="MyHeader" />
-<mat-calendar [dcWeekNumbers]="MyHeader" />
+<mat-datepicker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
+<mat-date-range-picker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
+<mat-calendar dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
 ```
 
 `MyHeader` is written exactly like a regular `calendarHeaderComponent`: it is rendered inside
@@ -171,7 +174,7 @@ the calendar and can inject `MatCalendar`, `DateAdapter`, etc. It can change at 
   header: no more column. A `console.warn` reports it in dev mode.
 - Alternative without the directive: add `DcWeekNumbersController` to the custom header
   (`hostDirectives: [DcWeekNumbersController]`) and bind it through `[calendarHeaderComponent]`.
-  If that header is also passed to `[dcWeekNumbers]`, only one controller acts (no duplicated column).
+  If that header is also passed to `[dcWeekNumbersCalendarHeader]`, only one controller acts (no duplicated column).
 
 ## Accessibility
 

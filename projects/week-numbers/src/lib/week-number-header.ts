@@ -8,7 +8,7 @@ import { DC_WEEK_NUMBERS_HOST } from './week-numbers-host';
  * Calendar header = header (standard Material one or an alternative) + week number column.
  *
  * - `<mat-datepicker dcWeekNumbers>`               → standard Material header
- * - `<mat-datepicker [dcWeekNumbers]="MyHeader">`  → `MyHeader`, rendered inside
+ * - `<mat-datepicker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader">`  → `MyHeader`, rendered inside
  *
  * The alternative header is created with the calendar's injector: it can inject
  * `MatCalendar`, `DateAdapter`… exactly like a regular `calendarHeaderComponent`.
@@ -30,7 +30,7 @@ export class DcWeekNumberHeader {
   protected readonly calendarHeader = computed<Type<unknown>>(() => {
     const hostCalendarHeader = this.host?.calendarHeader() ?? null;
     if (hostCalendarHeader === DcWeekNumberHeader) {
-      // [dcWeekNumbers]="DcWeekNumberHeader" → infinite recursion
+      // dcWeekNumbers [dcWeekNumbersCalendarHeader]="DcWeekNumberHeader" → infinite recursion
       if (isDevMode()) {
         console.warn('[dcWeekNumbers] DcWeekNumberHeader cannot wrap itself.');
       }

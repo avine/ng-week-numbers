@@ -24,7 +24,7 @@ const OBSERVER_OPTIONS: MutationObserverInit = {
 
 /**
  * Calendars already handled. Two controllers on the same calendar (e.g. an alternative header
- * that embeds `DcWeekNumbersController` itself and is passed to `[dcWeekNumbers]`) would fight
+ * that embeds `DcWeekNumbersController` itself and is passed to `[dcWeekNumbersCalendarHeader]`) would fight
  * over the DOM: only the first one acts.
  */
 const claimedCalendars = new WeakSet<HTMLElement>();
