@@ -1,12 +1,16 @@
 import { InjectionToken, Signal } from '@angular/core';
 
 export interface DcWeekNumbersIntl {
-  /** Visible column header (keep it short, the column is narrow). */
+  /** Visible caption in front of the week numbers (keep it short, e.g. "Wk"). */
   shortWeek: string;
-  /** Column header read by screen readers. */
+  /** Accessible name of the group of week numbers, read by screen readers. */
   week: string;
-  /** Accessible label of each week cell. */
-  weekNumber: (week: number) => string;
+  /**
+   * Accessible label of each week button, read by screen readers, e.g. "Week 46, 9 – 15".
+   * `days` is the range of days of the displayed month covered by the row ("9 – 15", or "1"
+   * when the row has a single day in the month), written like the day cells.
+   */
+  weekNumber: (week: number, days: string) => string;
 }
 
 export const DC_WEEK_NUMBER_INTL = new InjectionToken<Signal<DcWeekNumbersIntl>>(

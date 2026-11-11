@@ -21,8 +21,8 @@ export const appConfig: ApplicationConfig = {
       provide: DC_WEEK_NUMBER_INTL,
       useValue: signal({
         shortWeek: 'Wk',
-        week: 'Week number',
-        weekNumber: (week: number) => `Week ${week}`,
+        week: 'Week numbers',
+        weekNumber: (week: number, days: string) => `Week ${week}, ${days}`,
       }) satisfies Signal<DcWeekNumbersIntl>,
     },
   ],

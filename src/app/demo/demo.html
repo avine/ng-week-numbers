@@ -5,13 +5,13 @@
 
   <mat-datepicker-toggle matIconSuffix [for]="picker" />
 
-  <mat-datepicker #picker dcWeekNumbers />
+  <mat-datepicker #picker [calendarHeaderComponent]="weekNumberHeader" />
 </mat-form-field>
 
 <hr style="margin-block: 2rem" />
 
 <mat-card style="width: 300px">
-  <mat-calendar [(selected)]="selectedDate" dcWeekNumbers />
+  <mat-calendar [(selected)]="selectedDate" [headerComponent]="weekNumberHeader" />
 </mat-card>
 
-<p>{{selectedDate()|date}}</p>
+<p>{{ selectedDate() | date }}</p>

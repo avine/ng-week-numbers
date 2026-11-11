@@ -1,41 +1,23 @@
-import { NgComponentOutlet } from '@angular/common';
-import { Component, computed, inject, isDevMode, Type, ViewEncapsulation } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatCalendarHeader } from '@angular/material/datepicker';
-import { DcWeekNumbersController } from './week-numbers-controller';
-import { DC_WEEK_NUMBERS_HOST } from './week-numbers-host';
+import { DcWeekRuler } from './week-ruler';
 
 /**
- * Calendar header = header (standard Material one or an alternative) + week number column.
+ * Calendar header with week numbers: the standard Material header (period button, previous /
+ * next buttons, labels from `MatDatepickerIntl`), then the week ruler (`DcWeekRuler`).
  *
- * - `<mat-datepicker dcWeekNumbers>`               → standard Material header
- * - `<mat-datepicker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader">`  → `MyHeader`, rendered inside
+ * ```html
+ * <mat-datepicker [calendarHeaderComponent]="DcWeekNumberHeader" />
+ * <mat-date-range-picker [calendarHeaderComponent]="DcWeekNumberHeader" />
+ * <mat-calendar [headerComponent]="DcWeekNumberHeader" />
+ * ```
  *
- * The alternative header is created with the calendar's injector: it can inject
- * `MatCalendar`, `DateAdapter`… exactly like a regular `calendarHeaderComponent`.
- *
- * Styles are global (`ViewEncapsulation.None`) because a datepicker calendar is rendered
- * in the CDK overlay: nothing to import on the application side.
+ * To add week numbers to a custom header, embed `<dc-week-ruler />` in it instead.
  */
 @Component({
   selector: 'dc-week-number-header',
-  hostDirectives: [DcWeekNumbersController],
-  imports: [NgComponentOutlet],
-  template: `<ng-container *ngComponentOutlet="calendarHeader()" />`,
-  styleUrl: './week-numbers.scss',
-  encapsulation: ViewEncapsulation.None,
+  imports: [MatCalendarHeader, DcWeekRuler],
+  template: `<mat-calendar-header /><dc-week-ruler />`,
+  host: { class: 'dc-week-number-header' },
 })
-export class DcWeekNumberHeader {
-  private readonly host = inject(DC_WEEK_NUMBERS_HOST, { optional: true });
-
-  protected readonly calendarHeader = computed<Type<unknown>>(() => {
-    const hostCalendarHeader = this.host?.calendarHeader() ?? null;
-    if (hostCalendarHeader === DcWeekNumberHeader) {
-      // dcWeekNumbers [dcWeekNumbersCalendarHeader]="DcWeekNumberHeader" → infinite recursion
-      if (isDevMode()) {
-        console.warn('[dcWeekNumbers] DcWeekNumberHeader cannot wrap itself.');
-      }
-      return MatCalendarHeader;
-    }
-    return hostCalendarHeader ?? MatCalendarHeader;
-  });
-}
+export class DcWeekNumberHeader {}

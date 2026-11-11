@@ -1,12 +1,21 @@
 # `@jcdfr/ng-deco/week-numbers`
 
-**Week number** column (ISO 8601 by default) on the left of the Angular Material calendar:
+**Week numbers** (ISO 8601 by default) in the header of the Angular Material calendar:
 `mat-datepicker`, `mat-date-range-picker` and inline `mat-calendar`.
+
+Below the standard Material header, a ruler shows one button per row of the month grid, in the
+same order. The week of the selected date is filled (every week of a selected range), the current
+week carries a dot, and clicking a week moves the active date (and the focus) to its first day in
+the month, without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
+the year and multi-year views.
+
+Only the public API of `MatCalendar` is used (`activeDate`, `selected`, `currentView`, `minDate`, `maxDate`,
+`stateChanges`, `focusActiveCell()`): the calendar grid and its DOM are left untouched.
 
 Verified against **Angular / Angular Material 22.2** — zoneless, SSR-compatible (no-op on the server).
 
 **Requires `DateFnsAdapter`** (`@angular/material-date-fns-adapter`, `date-fns` v4). With another
-adapter, the column is not displayed and an error is logged in dev mode.
+adapter, the week numbers are not displayed and an error is logged in dev mode.
 
 ## Installation in the library
 
@@ -15,21 +24,28 @@ entry points). Its `ng-package.json` declares it as the `@jcdfr/ng-deco/week-num
 
 Peer dependencies of the library: `@angular/core`, `@angular/material`,
 `@angular/material-date-fns-adapter`, `date-fns`. No stylesheet to import: styles ship with the
-component (`ViewEncapsulation.None`).
+component.
 
 ## Usage
 
 ```ts
-import { DcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
+import { DcWeekNumberHeader } from '@jcdfr/ng-deco/week-numbers';
 
-@Component({ imports: [MatDatepickerModule, DcWeekNumbers], … })
+@Component({ imports: [MatDatepickerModule], … })
+export class MyComponent {
+  readonly weekNumberHeader = DcWeekNumberHeader;
+}
 ```
 
 ```html
-<mat-datepicker dcWeekNumbers />
-<mat-date-range-picker dcWeekNumbers />
-<mat-calendar dcWeekNumbers />
+<mat-datepicker [calendarHeaderComponent]="weekNumberHeader" />
+<mat-date-range-picker [calendarHeaderComponent]="weekNumberHeader" />
+<mat-calendar [headerComponent]="weekNumberHeader" />
 ```
+
+`DcWeekNumberHeader` renders Material's own `<mat-calendar-header>` (period button, previous /
+next buttons, `MatDatepickerIntl` labels, `minDate` / `maxDate` handling) followed by the week
+ruler. In a popup, Material lets the panel grow with a custom header, so the extra row fits.
 
 Rows start on the date-fns locale's `weekStartsOn` (Monday for `fr`, Sunday for `enUS`,
 Saturday for `faIR`…). By default each row shows the **ISO 8601** week of its Monday — the
@@ -44,14 +60,16 @@ against independent oracles (week numbers recomputed from their definition, digi
 numbering system Intl resolves, rows located from the rendered DOM):
 
 - both strategies (`dcIsoWeekNumber`, `dcLocaleWeekNumber`), every week from 2000 to 2040;
-- the rendered calendar (column alignment, ISO number, digits), every month from 2024 to 2028.
+- the rendered calendar (one button per grid row in the same order, ISO number, digits), every
+  month from 2024 to 2028.
 
 ### Known limitation of Material with `faIR`
 
 `DateFnsAdapter` renders day numbers with `Intl.DateTimeFormat(locale.code)`, whose default
 calendar for `fa-IR` is the **Persian calendar**: Material shows Persian day numbers in a
 Gregorian grid (e.g. January 1st is displayed as "۱۲"). This is a Material issue, independent
-of this component (week numbers stay correct). Workaround at the application level: force the
+of this component (week numbers stay correct, but the day ranges of the tooltips use the same
+Persian day numbers). Workaround at the application level: force the
 Gregorian calendar in the locale code.
 
 ```ts
@@ -65,6 +83,7 @@ Gregorian calendar in the locale code.
 The library ships no labels: provide them as a `Signal<DcWeekNumbersIntl>` through
 `DC_WEEK_NUMBER_INTL`. Without it, a missing provider error (`NG0201`) is thrown when the
 calendar is rendered: immediately for `mat-calendar`, when the popup opens for a datepicker.
+The labels of the Material header itself come from `MatDatepickerIntl`, as usual.
 
 ```ts
 import { signal } from '@angular/core';
@@ -74,9 +93,11 @@ providers: [
   {
     provide: DC_WEEK_NUMBER_INTL,
     useValue: signal<DcWeekNumbersIntl>({
-      shortWeek: 'Wk', // visible column header (keep it short)
-      week: 'Week number', // column header read by screen readers
-      weekNumber: (n) => `Week ${n}`, // label of each week cell, read by screen readers
+      shortWeek: 'Wk', // visible caption in front of the week numbers (keep it short)
+      week: 'Week numbers', // name of the group of buttons, read by screen readers
+      // label of each week button, read by screen readers: "Week 46, 9 – 15"
+      // `days`: days of the displayed month covered by the row, also shown as tooltip
+      weekNumber: (n, days) => `Week ${n}, ${days}`,
     }),
   },
 ];
@@ -109,8 +130,8 @@ the audience expects its locale-specific numbering.
 of its calendars only.
 
 A custom `DcWeekNumberFn` (`(rowStart: Date, adapter: DateFnsAdapter) => number`) can also be
-provided (e.g. fiscal weeks). Week numbers are always written with the same digits as the day
-cells.
+provided (e.g. fiscal weeks). It receives the first day displayed on the row (which may belong
+to the previous month). Week numbers are always written with the same digits as the day cells.
 
 ### Angular i18n (one build per locale)
 
@@ -149,50 +170,53 @@ Prefer `provideDcWeekNumberFn()` otherwise: unlike a raw provider, it is type-ch
 
 ### CSS variables
 
-| Variable                          | Default                        |
-| --------------------------------- | ------------------------------ |
-| `--dc-week-numbers-column-width`  | `28px`                         |
-| `--dc-week-numbers-color`         | `--mat-sys-on-surface-variant` |
-| `--dc-week-numbers-header-color`  | datepicker header token        |
-| `--dc-week-numbers-divider-color` | `--mat-sys-outline-variant`    |
+Defaults follow the Material 3 system tokens (`--mat-sys-*`), with fallbacks for themes that do
+not define them.
+
+| Variable                                | Default                        |
+| --------------------------------------- | ------------------------------ |
+| `--dc-week-numbers-color`               | `--mat-sys-primary`            |
+| `--dc-week-numbers-border-color`        | `--mat-sys-outline-variant`    |
+| `--dc-week-numbers-selected-background` | `--mat-sys-primary`            |
+| `--dc-week-numbers-selected-color`      | `--mat-sys-on-primary`         |
+| `--dc-week-numbers-caption-color`       | `--mat-sys-on-surface-variant` |
+| `--dc-week-numbers-font`                | `'Roboto Mono', monospace`     |
 
 ### Custom header
 
-The directive takes over the calendar's header slot. A custom header is therefore passed
-**to the directive**, instead of `[calendarHeaderComponent]` / `[headerComponent]`:
+`DcWeekRuler` (`<dc-week-ruler />`) is the week ruler alone. Embed it in any calendar header:
+Material creates the header inside `mat-calendar`, which is all the ruler needs.
 
-```html
-<mat-datepicker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
-<mat-date-range-picker dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
-<mat-calendar dcWeekNumbers [dcWeekNumbersCalendarHeader]="MyHeader" />
+```ts
+@Component({
+  imports: [MatCalendarHeader, DcWeekRuler],
+  template: `
+    <mat-calendar-header>
+      <button matButton (click)="today()">Today</button>
+    </mat-calendar-header>
+    <dc-week-ruler />
+  `,
+})
+export class MyHeader { … }
 ```
 
-`MyHeader` is written exactly like a regular `calendarHeaderComponent`: it is rendered inside
-the calendar and can inject `MatCalendar`, `DateAdapter`, etc. It can change at runtime.
-
-- Binding `[calendarHeaderComponent]` **on top of** `dcWeekNumbers` overrides the directive's
-  header: no more column. A `console.warn` reports it in dev mode.
-- Alternative without the directive: add `DcWeekNumbersController` to the custom header
-  (`hostDirectives: [DcWeekNumbersController]`) and bind it through `[calendarHeaderComponent]`.
-  If that header is also passed to `[dcWeekNumbersCalendarHeader]`, only one controller acts (no duplicated column).
+```html
+<mat-datepicker [calendarHeaderComponent]="MyHeader" />
+```
 
 ## Accessibility
 
-- Column header: `<th scope="col">` with a long label for screen readers.
-- Each row: `<th scope="row">` "Week 45", announced together with the days of the row.
-- Material keyboard navigation is unaffected (it relies on `data-mat-row/col`).
-- RTL: the column follows the text direction (logical CSS properties).
+- The ruler is a `role="group"` named by `week`; the visible caption is hidden from screen readers.
+- Each week is a native `<button>` labelled by `weekNumber(n, days)` (e.g. "Week 46, 9 – 15");
+  the week of the selected date carries `aria-current="true"`.
+- Clicking a week moves the focus to its first day in the grid (`MatCalendar#focusActiveCell()`):
+  keyboard users continue with the arrow keys, Enter selects. It does not select the date.
+- Rows entirely outside `minDate` / `maxDate` are disabled.
+- Visible focus ring (`:focus-visible`), `forced-colors` support for the selected week.
+- Material keyboard navigation in the grid is unaffected; the ruler follows it.
 
-## Limitations — worth knowing
+## Compatibility
 
-Material exposes **no API** for this feature. This secondary entry point:
-
-- relies on the **internal DOM** of `mat-month-view` (`.mat-calendar-table`, `data-mat-row`,
-  `thead` structure);
-- overrides the inline padding of the cells with `!important` (to keep square day cells),
-  limited to tables that carry the column.
-
-This is a deliberate, isolated exception to the library's "public APIs only" rule:
-**run `week-numbers.spec.ts` again on every Material upgrade.**
-If the entry point lives outside `src/`, include it in the tests:
-`ng test ng-deco --include='../week-numbers/**/*.spec.ts'` (or through the builder's `include`).
+Public Material API only, verified against Angular Material 22.2. The rows of the ruler are
+computed from the locale's first day of the week, exactly like `mat-month-view` does;
+`week-numbers.locales.spec.ts` checks this against the rendered grid for every date-fns locale.

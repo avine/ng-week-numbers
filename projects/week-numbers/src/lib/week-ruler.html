@@ -1,0 +1,20 @@
+@if (isMonthView() && weeks().length) {
+  <div class="dc-week-ruler" role="group" [attr.aria-label]="intl().week">
+    <span class="dc-week-ruler-caption" aria-hidden="true">{{ intl().shortWeek }}</span>
+    @for (chip of weeks(); track chip.start) {
+      <button
+        type="button"
+        class="dc-week-ruler-chip"
+        [class.dc-week-ruler-chip-selected]="chip.selected"
+        [class.dc-week-ruler-chip-today]="chip.today"
+        [attr.aria-label]="chip.label"
+        [attr.aria-current]="chip.selected ? 'true' : null"
+        [title]="chip.days"
+        [disabled]="chip.disabled"
+        (click)="activate(chip)"
+      >
+        {{ chip.text }}
+      </button>
+    }
+  </div>
+}

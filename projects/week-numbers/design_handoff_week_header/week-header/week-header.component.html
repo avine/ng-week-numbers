@@ -1,0 +1,22 @@
+<div class="top">
+  <button mat-button (click)="toggleView()">
+    {{ label }} <mat-icon iconPositionEnd>arrow_drop_down</mat-icon>
+  </button>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="prev()" aria-label="Précédent"><mat-icon>chevron_left</mat-icon></button>
+  <button mat-icon-button (click)="next()" aria-label="Suivant"><mat-icon>chevron_right</mat-icon></button>
+</div>
+
+@if (isMonthView) {
+  <div class="weeks">
+    <span class="caption">Sem.</span>
+    @for (w of weeks; track w.num) {
+      <button type="button" class="chip"
+              [class.active]="w.active" [class.today]="w.today"
+              [attr.aria-label]="'Semaine ' + w.num + ', ' + w.range"
+              [title]="w.range" (click)="goTo(w.target)">
+        {{ w.num }}
+      </button>
+    }
+  </div>
+}

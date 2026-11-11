@@ -15,14 +15,15 @@ import {
   DC_WEEK_NUMBER_INTL,
   dcIsoWeekNumber,
   dcLocaleWeekNumber,
-  DcWeekNumbers,
+  DcWeekNumberHeader,
 } from '../public-api';
 
 /**
  * Checks every locale shipped by date-fns against independent oracles:
  * - week numbers are recomputed from their definition (no date-fns, no component code);
  * - expected digits come from the numbering system Intl resolves for the locale;
- * - rows are located from the rendered DOM (day number + `data-mat-col`).
+ * - rows are located from the rendered grid (day number + column), and matched in order with the
+ *   week buttons of the header.
  */
 
 const locales = Object.entries(dateFnsLocales as Record<string, Locale>);
@@ -120,21 +121,19 @@ describe.each(locales)('strategies — %s', (_, locale) => {
 // ---------------------------------------------------------------------------
 
 @Component({
-  imports: [MatCalendar, DcWeekNumbers],
-  template: `<mat-calendar dcWeekNumbers />`,
+  imports: [MatCalendar],
+  template: `<mat-calendar [headerComponent]="header" />`,
 })
 class Host {
+  readonly header = DcWeekNumberHeader;
   readonly calendar = viewChild.required(MatCalendar);
 }
 
-const flush = async () => {
-  await TestBed.inject(ApplicationRef).whenStable();
-  await new Promise((r) => setTimeout(r)); // let the MutationObserver run
-};
+const flush = () => TestBed.inject(ApplicationRef).whenStable();
 
 /**
  * Visual column of a day cell, from the rendered colspans (not `data-mat-col`, which is relative
- * to the first day of the row), ignoring the week number column.
+ * to the first day of the row).
  */
 function visualColumn(cell: HTMLTableCellElement): number {
   let column = 0;
@@ -143,14 +142,13 @@ function visualColumn(cell: HTMLTableCellElement): number {
     sibling;
     sibling = sibling.previousElementSibling
   ) {
-    if (!sibling.classList.contains('dc-week-number'))
-      column += (sibling as HTMLTableCellElement).colSpan;
+    column += (sibling as HTMLTableCellElement).colSpan;
   }
   return column;
 }
 
 describe.each(locales)('rendered calendar — %s', (_, locale) => {
-  it('aligns rows on the locale, shows the ISO week of each row with the locale digits', async () => {
+  it('one button per row, in order, with the ISO week of the row in the locale digits', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
@@ -202,6 +200,10 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
           tr.querySelector('[data-mat-row]'),
         );
         if (rows.length < 4) mismatches.push(`${year}-${month + 1}: only ${rows.length} rows`);
+        const chips = Array.from(root.querySelectorAll('.dc-week-ruler-chip'));
+        if (chips.length !== rows.length) {
+          mismatches.push(`${year}-${month + 1}: ${chips.length} buttons, ${rows.length} rows`);
+        }
 
         for (const tr of rows) {
           const where = `${year}-${month + 1} row ${rows.indexOf(tr)}`;
@@ -223,9 +225,7 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
             firstDate.getDate() + ((1 - weekStartsOn + 7) % 7) - col,
           );
           const expected = numbering.format(oracleIsoWeek(monday));
-          const actual = stripBidi(
-            tr.querySelector('.dc-week-number-content')?.textContent ?? '(none)',
-          );
+          const actual = stripBidi(chips[rows.indexOf(tr)]?.textContent ?? '(none)');
           if (actual !== expected)
             mismatches.push(`${where}: got "${actual}", expected "${expected}"`);
         }

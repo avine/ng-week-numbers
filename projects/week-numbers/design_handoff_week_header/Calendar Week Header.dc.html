@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#eceef2;font-family:Roboto,system-ui,sans-serif;color:#1b1c20;-webkit-font-smoothing:antialiased}
+a{color:#3a5a9a}a:hover{color:#203f78}
+.ms{font-family:'Material Symbols Outlined';font-size:22px;line-height:1;font-weight:400;letter-spacing:normal;text-transform:none;white-space:nowrap;font-feature-settings:'liga'}
+</style>
+</helmet>
+<section style="padding:48px 48px 64px;display:flex;flex-direction:column;gap:32px;max-width:1600px">
+  <div style="display:flex;flex-direction:column;gap:8px;max-width:760px">
+    <div style="font:500 12px/1 'Roboto Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#5b5e68">Tour 1 · calendarHeaderComponent custom</div>
+    <h1 style="margin:0;font:500 30px/1.2 Roboto,sans-serif;letter-spacing:-.01em">Numéros de semaine, uniquement dans le header</h1>
+    <p style="margin:0;font:400 15px/1.55 Roboto,sans-serif;color:#45474f;text-wrap:pretty">Aucune colonne ajoutée à la grille : le header lit <code style="font-family:'Roboto Mono',monospace;font-size:13px">calendar.activeDate</code>, calcule les semaines ISO du mois affiché et les présente lui-même. Tout est interactif : flèches, jours, puces.</p>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start">
+    <sc-for list="{{ options }}" as="o" hint-placeholder-count="4">
+      <div id="{{ o.id }}" style="width:340px;display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font:500 12px/1 'Roboto Mono',monospace;background:#1b1c20;color:#fff;padding:5px 7px;border-radius:6px">{{ o.id }}</span>
+          <span style="font:500 17px/1.2 Roboto,sans-serif">{{ o.title }}</span>
+        </div>
+        <p style="margin:0;font:400 13.5px/1.5 Roboto,sans-serif;color:#45474f;min-height:60px;text-wrap:pretty">{{ o.desc }}</p>
+
+        <div style="position:relative;width:316px;background:#fff;border-radius:16px;box-shadow:0 1px 2px rgba(20,24,40,.12),0 6px 20px rgba(20,24,40,.08);padding:4px 10px 12px">
+          <div style="display:flex;flex-direction:column;gap:2px;padding:6px 0 4px">
+            <div style="display:flex;align-items:center;gap:6px;height:44px">
+              <button style="display:flex;align-items:center;gap:2px;border:0;background:transparent;font:500 14px/1 Roboto,sans-serif;letter-spacing:.02em;color:#1b1c20;padding:10px 6px 10px 12px;border-radius:20px;cursor:pointer;text-transform:uppercase" style-hover="background:#f0f1f6">{{ o.monthLabel }}<span class="ms" style="font-size:22px">arrow_drop_down</span></button>
+              <sc-if value="{{ o.isD }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ o.togglePop }}" style="display:flex;align-items:center;gap:4px;border:1px solid #c5c8d4;background:{{ o.pillBg }};color:#203f78;font:500 12px/1 'Roboto Mono',monospace;padding:6px 8px 6px 10px;border-radius:8px;cursor:pointer">{{ o.rangeShort }}<span class="ms" style="font-size:16px">{{ o.pillIcon }}</span></button>
+              </sc-if>
+              <div style="flex:1"></div>
+              <button onClick="{{ o.prev }}" style="width:40px;height:40px;border:0;border-radius:20px;background:transparent;color:#45474f;cursor:pointer;display:grid;place-items:center" style-hover="background:#f0f1f6"><span class="ms">chevron_left</span></button>
+              <button onClick="{{ o.next }}" style="width:40px;height:40px;border:0;border-radius:20px;background:transparent;color:#45474f;cursor:pointer;display:grid;place-items:center" style-hover="background:#f0f1f6"><span class="ms">chevron_right</span></button>
+            </div>
+
+            <sc-if value="{{ o.isA }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:baseline;gap:8px;padding:0 12px 6px">
+                <span style="font:500 13px/1 'Roboto Mono',monospace;color:#203f78">{{ o.rangeLong }}</span>
+                <span style="font:400 12px/1 Roboto,sans-serif;color:#6b6e78">· {{ o.weekCount }} semaines</span>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ o.isB }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:6px;padding:2px 8px 8px">
+                <span style="font:500 11px/1 Roboto,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#6b6e78;width:30px">Sem.</span>
+                <div style="display:flex;gap:4px;flex:1">
+                  <sc-for list="{{ o.chips }}" as="ch" hint-placeholder-count="5">
+                    <button onClick="{{ ch.click }}" title="{{ ch.title }}" style="position:relative;flex:1;height:30px;border-radius:8px;border:1px solid {{ ch.bd }};background:{{ ch.bg }};color:{{ ch.fg }};font:500 12px/1 'Roboto Mono',monospace;cursor:pointer;padding:0">{{ ch.num }}<sc-if value="{{ ch.today }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:50%;bottom:3px;width:4px;height:4px;margin-left:-2px;border-radius:2px;background:{{ ch.dot }}"></span></sc-if></button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ o.isC }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:4px;margin:0 4px 8px;padding:4px;background:#eef1f9;border-radius:12px">
+                <button onClick="{{ o.prevWeek }}" style="width:32px;height:32px;border:0;border-radius:16px;background:transparent;color:#203f78;cursor:pointer;display:grid;place-items:center" style-hover="background:#dde3f2"><span class="ms" style="font-size:20px">keyboard_arrow_left</span></button>
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+                  <span style="font:500 13px/1 Roboto,sans-serif;color:#203f78">Semaine {{ o.activeWeek }}</span>
+                  <span style="font:400 12px/1 Roboto,sans-serif;color:#45474f">{{ o.activeRange }}</span>
+                </div>
+                <button onClick="{{ o.nextWeek }}" style="width:32px;height:32px;border:0;border-radius:16px;background:transparent;color:#203f78;cursor:pointer;display:grid;place-items:center" style-hover="background:#dde3f2"><span class="ms" style="font-size:20px">keyboard_arrow_right</span></button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ o.showPop }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:52px;left:12px;right:12px;z-index:2;background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(20,24,40,.15),0 12px 32px rgba(20,24,40,.16);padding:6px">
+                <sc-for list="{{ o.chips }}" as="ch" hint-placeholder-count="5">
+                  <button onClick="{{ ch.pick }}" style="width:100%;display:flex;align-items:center;gap:12px;border:0;background:{{ ch.rowBg }};border-radius:8px;padding:9px 10px;cursor:pointer;text-align:left" style-hover="background:#f0f1f6">
+                    <span style="font:500 12px/1 'Roboto Mono',monospace;color:#203f78;width:30px">S{{ ch.num }}</span>
+                    <span style="flex:1;font:400 13px/1 Roboto,sans-serif;color:#1b1c20">{{ ch.title }}</span>
+                    <sc-if value="{{ ch.today }}" hint-placeholder-val="{{ false }}"><span style="font:500 11px/1 Roboto,sans-serif;color:#6b6e78">aujourd'hui</span></sc-if>
+                  </button>
+                </sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 2px 6px;border-bottom:1px solid #e3e5ec;margin-bottom:6px">
+            <sc-for list="{{ dayNames }}" as="dn" hint-placeholder-count="7">
+              <span style="text-align:center;font:500 11px/24px Roboto,sans-serif;color:#6b6e78">{{ dn }}</span>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;padding:0 2px">
+            <sc-for list="{{ o.weeks }}" as="w" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);height:42px">
+                <sc-for list="{{ w.cells }}" as="c" hint-placeholder-count="7">
+                  <div style="display:grid;place-items:center">
+                    <sc-if value="{{ c.on }}" hint-placeholder-val="{{ true }}">
+                      <button onClick="{{ c.click }}" style="width:36px;height:36px;border-radius:18px;border:1px solid {{ c.bd }};background:{{ c.bg }};color:{{ c.fg }};font:400 13px/1 Roboto,sans-serif;cursor:pointer;padding:0">{{ c.d }}</button>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:6px;padding-top:2px">
+          <sc-for list="{{ o.notes }}" as="n" hint-placeholder-count="2">
+            <div style="display:flex;gap:8px;font:400 12.5px/1.45 Roboto,sans-serif;color:#45474f"><span style="color:#9a9da8">—</span><span style="text-wrap:pretty">{{ n }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:760px">
+    <div style="font:500 12px/1 'Roboto Mono',monospace;letter-spacing:.08em;text-transform:uppercase;color:#5b5e68">Base commune (API publique uniquement)</div>
+    <pre style="margin:0;background:#1b1c20;color:#e6e7ec;border-radius:12px;padding:18px 20px;font:400 12.5px/1.6 'Roboto Mono',monospace;overflow:auto">export class WeekHeader&lt;D&gt; {
+  calendar = inject(MatCalendar&lt;D&gt;);
+  adapter  = inject(DateAdapter&lt;D&gt;);
+  constructor(cdr: ChangeDetectorRef) {
+    this.calendar.stateChanges.pipe(takeUntilDestroyed()).subscribe(() =&gt; cdr.markForCheck());
+  }
+  // semaines ISO de chaque ligne du mois de calendar.activeDate
+  get weeks() { /* 1er du mois → lundi de sa semaine → pas de 7 j jusqu'à la fin du mois */ }
+  goTo(monday: D) { this.calendar.activeDate = monday; }
+}</pre>
+    <p style="margin:0;font:400 13px/1.5 Roboto,sans-serif;color:#45474f">En vue année / multi-années, masquer le bloc semaines (<code style="font-family:'Roboto Mono',monospace">calendar.currentView !== 'month'</code>).</p>
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const MONTHS = ['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const TODAY = new Date(2026, 10, 11);
+const same = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+function isoWeek(d) {
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7;
+  t.setUTCDate(t.getUTCDate() + 4 - day);
+  const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+}
+const monday = d => { const m = new Date(d); m.setDate(d.getDate() - (d.getDay() + 6) % 7); return m; };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const addMonths = (d, n) => {
+  const y = d.getFullYear(), m = d.getMonth() + n;
+  const last = new Date(y, m + 1, 0).getDate();
+  return new Date(y, m, Math.min(d.getDate(), last));
+};
+function range(a, b) {
+  if (a.getMonth() === b.getMonth()) return `${a.getDate()} – ${b.getDate()} ${MONTHS[b.getMonth()]}`;
+  return `${a.getDate()} ${MONTHS[a.getMonth()]} – ${b.getDate()} ${MONTHS[b.getMonth()]}`;
+}
+
+const META = {
+  '1a': { title: 'Plage sous le titre', desc: 'Une ligne discrète sous le mois : première et dernière semaine affichées. Zéro interaction, lecture immédiate.',
+    notes: ['Le plus léger : une seule ligne de texte.', 'Ne dit pas quelle ligne correspond à quelle semaine — suffit pour un repère global.'] },
+  '1b': { title: 'Règle de semaines', desc: 'Une puce par ligne de la grille, dans le même ordre. La puce pleine = semaine de la date active ; le point = semaine en cours. Clic → active le lundi.',
+    notes: ['Même nombre de puces que de lignes : la correspondance se fait à l’œil.', 'Clic → calendar.activeDate = lundi (API publique).'] },
+  '1c': { title: 'Navigation par semaine', desc: 'Le header affiche la semaine de la date active avec ses bornes, et des flèches ±7 jours qui traversent les mois.',
+    notes: ['Idéal si l’utilisateur raisonne en semaines (planning, saisie de temps).', 'Suivre la date active au clavier : stateChanges suffit.'] },
+  '1d': { title: 'Pastille + liste', desc: 'Une pastille compacte « S44–49 » à côté du mois. Au clic, un panneau propre au header liste chaque semaine avec ses dates.',
+    notes: ['Header au repos quasi inchangé ; le détail est à la demande.', 'Le panneau appartient au header (position absolue), aucune modification du DOM du calendrier.'] },
+};
+
+class Component extends DCLogic {
+  state = {
+    active: { '1a': TODAY, '1b': TODAY, '1c': TODAY, '1d': TODAY },
+    sel: { '1a': null, '1b': null, '1c': null, '1d': null },
+    pop: false,
+  };
+  setActive(id, d, sel) {
+    this.setState(s => ({
+      active: { ...s.active, [id]: d },
+      sel: sel ? { ...s.sel, [id]: d } : s.sel,
+    }));
+  }
+  build(id) {
+    const active = this.state.active[id], sel = this.state.sel[id];
+    const y = active.getFullYear(), m = active.getMonth();
+    const first = new Date(y, m, 1), daysIn = new Date(y, m + 1, 0).getDate();
+    const offset = (first.getDay() + 6) % 7;
+    const cells = [];
+    for (let i = 0; i < offset; i++) cells.push(null);
+    for (let d = 1; d <= daysIn; d++) cells.push(new Date(y, m, d));
+    while (cells.length % 7) cells.push(null);
+    const weeks = [];
+    for (let i = 0; i < cells.length; i += 7) {
+      const row = cells.slice(i, i + 7);
+      const firstDay = row.find(Boolean);
+      weeks.push({
+        num: isoWeek(firstDay), mon: monday(firstDay), firstDay,
+        cells: row.map(d => {
+          if (!d) return { on: false };
+          const isSel = same(d, sel), isToday = same(d, TODAY), isAct = same(d, active);
+          return {
+            on: true, d: d.getDate(),
+            bg: isSel ? '#3a5a9a' : isAct ? '#e3e9f6' : 'transparent',
+            fg: isSel ? '#fff' : '#1b1c20',
+            bd: isToday && !isSel ? '#1b1c20' : 'transparent',
+            click: () => this.setActive(id, d, true),
+          };
+        }),
+      });
+    }
+    const aw = isoWeek(active), tw = isoWeek(TODAY);
+    const chips = weeks.map(w => {
+      const isAct = w.num === aw && w.mon.getFullYear() === monday(active).getFullYear();
+      const isToday = same(w.mon, monday(TODAY));
+      const target = w.mon.getMonth() === m ? w.mon : w.firstDay;
+      return {
+        num: w.num, today: isToday, title: range(w.mon, addDays(w.mon, 6)),
+        bg: isAct ? '#3a5a9a' : '#fff', fg: isAct ? '#fff' : '#203f78', bd: isAct ? '#3a5a9a' : '#c5c8d4',
+        dot: isAct ? '#fff' : '#3a5a9a',
+        rowBg: isAct ? '#eef1f9' : 'transparent',
+        click: () => this.setActive(id, target),
+        pick: () => { this.setActive(id, target); this.setState({ pop: false }); },
+      };
+    });
+    const f = weeks[0].num, l = weeks[weeks.length - 1].num;
+    const am = monday(active);
+    return {
+      id, ...META[id],
+      isA: id === '1a', isB: id === '1b', isC: id === '1c', isD: id === '1d',
+      showPop: id === '1d' && this.state.pop,
+      pillBg: this.state.pop ? '#eef1f9' : '#fff', pillIcon: this.state.pop ? 'expand_less' : 'expand_more',
+      monthLabel: `${MONTHS[m].replace('.', '')} ${y}`,
+      rangeLong: `S${f} → S${l}`, rangeShort: `S${f}–${l}`, weekCount: weeks.length,
+      activeWeek: aw, activeRange: `${range(am, addDays(am, 6))} ${addDays(am, 6).getFullYear()}`,
+      weeks, chips,
+      prev: () => this.setActive(id, addMonths(active, -1)),
+      next: () => this.setActive(id, addMonths(active, 1)),
+      prevWeek: () => this.setActive(id, addDays(active, -7)),
+      nextWeek: () => this.setActive(id, addDays(active, 7)),
+      togglePop: () => this.setState(s => ({ pop: !s.pop })),
+    };
+  }
+  renderVals() {
+    return {
+      dayNames: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+      options: ['1a', '1b', '1c', '1d'].map(id => this.build(id)),
+    };
+  }
+}
+</script>
+</body>
+</html>

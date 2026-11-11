@@ -4,14 +4,15 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { DcWeekNumbers } from 'week-numbers';
+import { DcWeekNumberHeader } from 'week-numbers';
 
 @Component({
-  imports: [DatePipe, MatCardModule, MatFormFieldModule, MatInputModule, MatDatepickerModule, DcWeekNumbers],
+  imports: [DatePipe, MatCardModule, MatFormFieldModule, MatInputModule, MatDatepickerModule],
   selector: 'app-demo',
   styleUrl: './demo.scss',
   templateUrl: './demo.html',
 })
 export class Demo {
+  readonly weekNumberHeader = DcWeekNumberHeader;
   selectedDate = signal<Date | null>(null);
 }
