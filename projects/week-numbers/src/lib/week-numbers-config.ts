@@ -27,6 +27,9 @@ export const DC_WEEK_NUMBER_FN = new InjectionToken<DcWeekNumberFn>('DC_WEEK_NUM
  * provideDcWeekNumberFn(dcLocaleWeekNumber) // locale numbering (e.g. US)
  * ```
  */
-export function provideDcWeekNumberFn(weekNumberFn: DcWeekNumberFn): Provider[] {
-  return [{ provide: DC_WEEK_NUMBER_FN, useValue: weekNumberFn }];
-}
+export const provideDcWeekNumberFn = (weekNumberFn: DcWeekNumberFn): Provider[] => [
+  {
+    provide: DC_WEEK_NUMBER_FN,
+    useValue: weekNumberFn,
+  },
+];

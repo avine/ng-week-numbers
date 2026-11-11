@@ -1,5 +1,5 @@
 @if (isMonthView() && weeks().length) {
-  <div class="dc-week-ruler" role="group" [attr.aria-label]="intl().week">
+  <div class="dc-week-ruler" role="group" [aria-label]="intl().week">
     <span class="dc-week-ruler-caption" aria-hidden="true">{{ intl().shortWeek }}</span>
     @for (chip of weeks(); track chip.start) {
       <button
@@ -7,9 +7,10 @@
         class="dc-week-ruler-chip"
         [class.dc-week-ruler-chip-selected]="chip.selected"
         [class.dc-week-ruler-chip-today]="chip.today"
-        [attr.aria-label]="chip.label"
-        [attr.aria-current]="chip.selected ? 'true' : null"
-        [title]="chip.days"
+        [aria-label]="chip.label"
+        [aria-current]="chip.selected ? 'true' : null"
+        [matTooltip]="chip.days"
+        [matTooltipShowDelay]="500"
         [disabled]="chip.disabled"
         (click)="activate(chip)"
       >

@@ -3,6 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { DateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { DateAdapter } from '@angular/material/core';
 import { DateRange, MatCalendar, MatCalendarView } from '@angular/material/datepicker';
+import { MatTooltip } from '@angular/material/tooltip';
+import { differenceInCalendarDays } from 'date-fns';
 import { map, merge } from 'rxjs';
 import { dcFormatWeekNumber, dcRowStart } from './week-number-fns';
 import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
@@ -40,7 +42,8 @@ interface CalendarState {
  * Week numbers of the displayed month: one button per row of the grid, in the same order.
  * The button of the selected date's week is filled (every week of a selected range), the current
  * week carries a dot. Like in the grid, no button is filled in the other months. Clicking a
- * week moves the active date (and the focus) to its first day in the month, without selecting it.
+ * week moves the active date (and the focus) to its first day in the month — or to `minDate`
+ * when that day is earlier — without selecting it.
  * Hidden in the year and multi-year views.
  *
  * Meant to be rendered in a calendar header, i.e. inside `mat-calendar`: it only uses the
@@ -53,14 +56,20 @@ interface CalendarState {
  */
 @Component({
   selector: 'dc-week-ruler',
+  host: { class: 'dc-week-ruler' },
+  imports: [MatTooltip],
   templateUrl: './week-ruler.html',
   styleUrl: './week-ruler.scss',
 })
 export class DcWeekRuler {
   private readonly calendar = inject<MatCalendar<Date>>(MatCalendar);
+
   private readonly weekNumberFn = inject(DC_WEEK_NUMBER_FN);
+
   protected readonly intl = inject(DC_WEEK_NUMBER_INTL);
+
   private readonly adapter = DcWeekRuler.dateFnsAdapter(inject(DateAdapter));
+
   private focusTimeout: ReturnType<typeof setTimeout> | undefined;
 
   constructor() {
@@ -91,7 +100,8 @@ export class DcWeekRuler {
     const month = adapter.getMonth(activeDate);
     const firstOfMonth = adapter.createDate(year, month, 1);
     const numDays = adapter.getNumDaysInMonth(firstOfMonth);
-    const offset = (adapter.getDayOfWeek(firstOfMonth) - adapter.getFirstDayOfWeek() + 7) % 7;
+    // Days of the previous month on the first row.
+    const offset = differenceInCalendarDays(firstOfMonth, dcRowStart(firstOfMonth, 0, adapter));
     const dayNames = adapter.getDateNames();
     const [selectionStart, selectionEnd] = DcWeekRuler.selectionBounds(selected);
     const today = adapter.today();

@@ -46,11 +46,11 @@ export class DcWeekNumbers {
     }
   }
 
-  private setHeaderComponent(header: typeof DcWeekNumberHeader): void {
+  private setHeaderComponent(headerComponent: typeof DcWeekNumberHeader): void {
     if (this.picker) {
-      this.picker.calendarHeaderComponent = header;
+      this.picker.calendarHeaderComponent = headerComponent;
     } else if (this.calendar) {
-      this.calendar.headerComponent = header;
+      this.calendar.headerComponent = headerComponent;
     }
   }
 

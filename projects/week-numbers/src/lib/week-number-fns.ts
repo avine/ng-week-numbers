@@ -1,5 +1,5 @@
 import { DateFnsAdapter } from '@angular/material-date-fns-adapter';
-import { addDays, type Day, getISOWeek } from 'date-fns';
+import { addDays, addWeeks, type Day, getISOWeek, startOfWeek } from 'date-fns';
 
 /**
  * Computes the number displayed for a calendar row.
@@ -60,6 +60,5 @@ export function dcFormatWeekNumber(week: number, adapter: DateFnsAdapter): strin
 /** First day displayed on a given row of the month view. */
 export function dcRowStart(firstOfMonth: Date, rowIndex: number, adapter: DateFnsAdapter): Date {
   const weekStartsOn = adapter.getFirstDayOfWeek() as Day;
-  const offset = (firstOfMonth.getDay() - weekStartsOn + 7) % 7;
-  return addDays(firstOfMonth, rowIndex * 7 - offset);
+  return startOfWeek(addWeeks(firstOfMonth, rowIndex), { weekStartsOn });
 }

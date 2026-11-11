@@ -6,7 +6,7 @@
 Below the standard Material header, a ruler shows one button per row of the month grid, in the
 same order. The week of the selected date is filled (every week of a selected range), the current
 week carries a dot, and clicking a week moves the active date (and the focus) to its first day in
-the month, without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
+the month — or to `minDate` when that day is earlier — without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
 the year and multi-year views.
 
 Only the public API of `MatCalendar` is used (`activeDate`, `selected`, `currentView`, `minDate`, `maxDate`,
@@ -224,7 +224,8 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 - The ruler is a `role="group"` named by `week`; the visible caption is hidden from screen readers.
 - Each week is a native `<button>` labelled by `weekNumber(n, days)` (e.g. "Week 46, 9 – 15");
   the week of the selected date carries `aria-current="true"`.
-- Clicking a week moves the focus to its first day in the grid (`MatCalendar#focusActiveCell()`):
+- Clicking a week moves the focus to its first day in the grid, or to `minDate` when that day is
+  earlier (`MatCalendar#focusActiveCell()`):
   keyboard users continue with the arrow keys, Enter selects. It does not select the date.
 - Rows entirely outside `minDate` / `maxDate` are disabled.
 - Visible focus ring (`:focus-visible`), `forced-colors` support for the selected week.

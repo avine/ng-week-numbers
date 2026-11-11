@@ -19,8 +19,8 @@ import { DcWeekRuler } from './week-ruler';
  */
 @Component({
   selector: 'dc-week-number-header',
+  host: { class: 'dc-week-number-header' },
   imports: [MatCalendarHeader, DcWeekRuler],
   template: `<mat-calendar-header /><dc-week-ruler />`,
-  host: { class: 'dc-week-number-header' },
 })
 export class DcWeekNumberHeader {}
