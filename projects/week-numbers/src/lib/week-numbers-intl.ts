@@ -1,22 +1,14 @@
-import { Injectable, signal } from '@angular/core';
+import { InjectionToken, Signal } from '@angular/core';
 
-/**
- * Labels of the week number column.
- * To translate them: provide a subclass, or update the signals at runtime
- * (an open calendar updates automatically).
- *
- * ```ts
- * { provide: DcWeekNumbersIntl, useClass: MyWeekNumbersIntl }
- * ```
- */
-@Injectable({ providedIn: 'root' })
-export class DcWeekNumbersIntl {
+export interface DcWeekNumbersIntl {
   /** Visible column header (keep it short, the column is narrow). */
-  readonly columnHeader = signal('S');
-
+  shortWeek: string;
   /** Column header read by screen readers. */
-  readonly columnHeaderLabel = signal('Numéro de semaine');
-
+  week: string;
   /** Accessible label of each week cell. */
-  readonly weekLabel = signal((week: number) => `Semaine ${week}`);
+  weekNumber: (week: number) => string;
 }
+
+export const DC_WEEK_NUMBER_INTL = new InjectionToken<Signal<DcWeekNumbersIntl>>(
+  'DC_WEEK_NUMBER_INTL',
+);

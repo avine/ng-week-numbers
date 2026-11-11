@@ -12,7 +12,7 @@ import { DateAdapter } from '@angular/material/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { dcFormatWeekNumber, dcRowStart } from './week-number-fns';
 import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
-import { DcWeekNumbersIntl } from './week-numbers-intl';
+import { DC_WEEK_NUMBER_INTL, DcWeekNumbersIntl } from './week-numbers-intl';
 
 const CELL_CLASS = 'dc-week-number';
 const HOST_CLASS = 'dc-week-numbers';
@@ -36,7 +36,8 @@ const claimedCalendars = new WeakSet<HTMLElement>();
  * instantiates the header *inside* the `mat-calendar`, which gives access to `MatCalendar`.
  * `DcWeekNumberHeader` uses it; a custom header can do the same.
  *
- * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it.
+ * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it, and the labels
+ * (`DC_WEEK_NUMBER_INTL`).
  *
  * ⚠️ Relies on the internal DOM of `mat-month-view` (`.mat-calendar-table`, `data-mat-row`),
  * verified against Angular Material 22.2. Re-test on every Material upgrade.
@@ -46,7 +47,7 @@ export class DcWeekNumbersController {
   private readonly calendar = inject<MatCalendar<Date>>(MatCalendar);
   private readonly adapter = inject(DateAdapter);
   private readonly weekNumberFn = inject(DC_WEEK_NUMBER_FN);
-  private readonly intl = inject(DcWeekNumbersIntl);
+  private readonly intl = inject(DC_WEEK_NUMBER_INTL);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   private root: HTMLElement | null = null;
@@ -81,9 +82,7 @@ export class DcWeekNumbersController {
 
     // Re-render when the labels change (language switch at runtime).
     afterRenderEffect(() => {
-      this.intl.columnHeader();
-      this.intl.columnHeaderLabel();
-      this.intl.weekLabel();
+      this.intl();
       this.refresh();
     });
 
@@ -111,6 +110,7 @@ export class DcWeekNumbersController {
     root.querySelectorAll(`.${CELL_CLASS}`).forEach((el) => el.remove());
     const adapter = this.dateFns;
     if (!adapter || this.calendar.currentView !== 'month') return;
+    const intl = this.intl();
 
     const table = root.querySelector<HTMLTableElement>('.mat-calendar-table');
     const thead = table?.tHead;
@@ -119,7 +119,7 @@ export class DcWeekNumbersController {
 
     // Header: weekdays row + divider row.
     const [weekdaysRow, dividerRow] = Array.from(thead.rows);
-    weekdaysRow?.prepend(this.createHeaderCell());
+    weekdaysRow?.prepend(this.createHeaderCell(intl));
     const divider = dividerRow?.cells[0];
     if (divider) divider.colSpan = weekdaysRow?.cells.length ?? 8;
 
@@ -135,27 +135,31 @@ export class DcWeekNumbersController {
       }
       const rowStart = dcRowStart(firstOfMonth, Number(dayCell.dataset['matRow']), adapter);
       const week = this.weekNumberFn(rowStart, adapter);
-      tr.prepend(this.createWeekCell(week, dcFormatWeekNumber(week, adapter)));
+      tr.prepend(this.createWeekCell(intl, week, dcFormatWeekNumber(week, adapter)));
     }
   }
 
-  private createHeaderCell(): HTMLTableCellElement {
+  private createHeaderCell(intl: DcWeekNumbersIntl): HTMLTableCellElement {
     const th = document.createElement('th');
     th.className = CELL_CLASS;
     th.scope = 'col';
     th.append(
-      this.span(this.intl.columnHeaderLabel(), 'cdk-visually-hidden'),
-      this.span(this.intl.columnHeader(), undefined, true),
+      this.span(intl.week, 'cdk-visually-hidden'),
+      this.span(intl.shortWeek, undefined, true),
     );
     return th;
   }
 
-  private createWeekCell(week: number, displayed: string): HTMLTableCellElement {
+  private createWeekCell(
+    intl: DcWeekNumbersIntl,
+    week: number,
+    displayed: string,
+  ): HTMLTableCellElement {
     const th = document.createElement('th');
     th.className = CELL_CLASS;
     th.scope = 'row';
     th.append(
-      this.span(this.intl.weekLabel()(week), 'cdk-visually-hidden'),
+      this.span(intl.weekNumber(week), 'cdk-visually-hidden'),
       this.span(displayed, `${CELL_CLASS}-content`, true),
     );
     return th;

@@ -60,20 +60,30 @@ Gregorian calendar in the locale code.
 
 ## Customization
 
-### Labels (i18n)
+### Labels (i18n, required)
+
+The library ships no labels: provide them as a `Signal<DcWeekNumbersIntl>` through
+`DC_WEEK_NUMBER_INTL`. Without it, a missing provider error (`NG0201`) is thrown when the
+calendar is rendered: immediately for `mat-calendar`, when the popup opens for a datepicker.
 
 ```ts
-@Injectable()
-export class MyWeekNumbersIntl extends DcWeekNumbersIntl {
-  override readonly columnHeader = signal('Wk');
-  override readonly columnHeaderLabel = signal('Week number');
-  override readonly weekLabel = signal((n: number) => `Week ${n}`);
-}
+import { signal } from '@angular/core';
+import { DC_WEEK_NUMBER_INTL, type DcWeekNumbersIntl } from '@jcdfr/ng-deco/week-numbers';
 
-providers: [{ provide: DcWeekNumbersIntl, useClass: MyWeekNumbersIntl }];
+providers: [
+  {
+    provide: DC_WEEK_NUMBER_INTL,
+    useValue: signal<DcWeekNumbersIntl>({
+      shortWeek: 'Wk', // visible column header (keep it short)
+      week: 'Week number', // column header read by screen readers
+      weekNumber: (n) => `Week ${n}`, // label of each week cell, read by screen readers
+    }),
+  },
+];
 ```
 
-The signals can also be updated at runtime: an open calendar updates automatically.
+To switch language at runtime, set a new object on the signal: an open calendar updates
+automatically. Mutating the current object is not detected.
 
 ### Numbering
 

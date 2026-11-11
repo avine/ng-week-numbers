@@ -21,15 +21,24 @@ import type { Locale } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import {
   DC_WEEK_NUMBER_FN,
+  DC_WEEK_NUMBER_INTL,
   dcIsoWeekNumber,
   dcLocaleWeekNumber,
   type DcWeekNumberFn,
   DcWeekNumberHeader,
   DcWeekNumbers,
   DcWeekNumbersController,
-  DcWeekNumbersIntl,
+  type DcWeekNumbersIntl,
   provideDcWeekNumberFn,
 } from '../public-api';
+
+/** The library ships no labels: the application provides them. */
+const LABELS: DcWeekNumbersIntl = {
+  shortWeek: 'S',
+  week: 'Numéro de semaine',
+  weekNumber: (week) => `Semaine ${week}`,
+};
+const provideLabels = () => ({ provide: DC_WEEK_NUMBER_INTL, useFactory: () => signal(LABELS) });
 
 describe('week number strategies', () => {
   function adapterFor(locale: Locale): DateFnsAdapter {
@@ -88,6 +97,7 @@ describe('DcWeekNumbers', () => {
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: fr },
+        provideLabels(),
         ...(extraProviders as never[]),
       ],
     });
@@ -125,13 +135,34 @@ describe('DcWeekNumbers', () => {
   });
 
   it('exposes accessible labels that can be translated at runtime', async () => {
-    const { root } = setup();
+    const intl = signal(LABELS);
+    const { root } = setup([{ provide: DC_WEEK_NUMBER_INTL, useValue: intl }]);
     await flush();
-    const intl = TestBed.inject(DcWeekNumbersIntl);
-    intl.weekLabel.set((n) => `Week ${n}`);
-    await flush();
+    const header = root.querySelector('thead th.dc-week-number')!;
     const firstRowHeader = root.querySelector('tbody th.dc-week-number[scope="row"]')!;
-    expect(firstRowHeader.querySelector('.cdk-visually-hidden')!.textContent).toBe('Week 44');
+    expect(header.querySelector('.cdk-visually-hidden')!.textContent).toBe('Numéro de semaine');
+    expect(header.querySelector('[aria-hidden="true"]')!.textContent).toBe('S');
+    expect(firstRowHeader.querySelector('.cdk-visually-hidden')!.textContent).toBe('Semaine 44');
+
+    intl.set({ shortWeek: 'Wk', week: 'Week number', weekNumber: (n) => `Week ${n}` });
+    await flush();
+    const newHeader = root.querySelector('thead th.dc-week-number')!;
+    const newFirstRowHeader = root.querySelector('tbody th.dc-week-number[scope="row"]')!;
+    expect(newHeader.querySelector('.cdk-visually-hidden')!.textContent).toBe('Week number');
+    expect(newHeader.querySelector('[aria-hidden="true"]')!.textContent).toBe('Wk');
+    expect(newFirstRowHeader.querySelector('.cdk-visually-hidden')!.textContent).toBe('Week 44');
+  });
+
+  it('throws when DC_WEEK_NUMBER_INTL is not provided', () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideDateFnsAdapter(),
+        { provide: MAT_DATE_LOCALE, useValue: fr },
+      ],
+    });
+    const fixture = TestBed.createComponent(Host);
+    expect(() => fixture.detectChanges()).toThrow(/DC_WEEK_NUMBER_INTL/);
   });
 
   it('accepts a custom numbering strategy', async () => {
@@ -215,6 +246,7 @@ describe('DcWeekNumbers — alternative header', () => {
     provideZonelessChangeDetection(),
     provideDateFnsAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: fr },
+    provideLabels(),
   ];
 
   afterEach(() => document.querySelectorAll('.cdk-overlay-container').forEach((el) => el.remove()));
@@ -298,6 +330,7 @@ describe('DcWeekNumbers — date-fns', () => {
         provideZonelessChangeDetection(),
         provideNativeDateAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
+        provideLabels(),
       ],
     });
     const root = TestBed.createComponent(Host).nativeElement as HTMLElement;
@@ -313,6 +346,7 @@ describe('DcWeekNumbers — date-fns', () => {
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: fr },
+        provideLabels(),
         provideDcWeekNumberFn(dcLocaleWeekNumber),
       ],
     });
