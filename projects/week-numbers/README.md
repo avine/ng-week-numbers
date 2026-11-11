@@ -78,11 +78,11 @@ The signals can also be updated at runtime: an open calendar updates automatical
 ### Numbering
 
 ```ts
-import { dcLocaleWeekNumber, provideDcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
+import { dcLocaleWeekNumber, provideDcWeekNumberFn } from '@jcdfr/ng-deco/week-numbers';
 
 providers: [
   // Locale numbering (weekStartsOn + firstWeekContainsDate), e.g. US numbering for enUS
-  provideDcWeekNumbers({ weekNumberFn: dcLocaleWeekNumber }),
+  provideDcWeekNumberFn(dcLocaleWeekNumber),
 ];
 ```
 
@@ -95,8 +95,44 @@ providers: [
 `es` declares `firstWeekContainsDate: 1` while Spain uses ISO 8601. Keep the ISO default unless
 the audience expects its locale-specific numbering.
 
-A custom `weekNumberFn: (rowStart: Date, adapter: DateFnsAdapter) => number` can be provided,
-as well as `formatWeekNumber` (default: `dcFormatWeekNumber`, same digits as the day cells).
+A custom `DcWeekNumberFn` (`(rowStart: Date, adapter: DateFnsAdapter) => number`) can also be
+provided (e.g. fiscal weeks). Week numbers are always written with the same digits as the day
+cells.
+
+### Angular i18n (one build per locale)
+
+Every build shares the same providers, so:
+
+- `MAT_DATE_LOCALE` must follow the build's `LOCALE_ID` (day names, first day of the week);
+- with the ISO default, a given date has **the same week number in every build**, which is
+  usually what the business expects ("delivery in week 53");
+- `dcLocaleWeekNumber` follows each build's locale instead: the last row of December 2026 is
+  week **53** in `fr` (Mon Dec 28 → Sun Jan 3) but week **1** in `en-US` (Sun Dec 27 → Sat Jan 2).
+
+Week numbering is a business convention, not a language: an app for a European audience keeps
+ISO numbers in every language. Its English build should also use the `enGB` date-fns locale
+rather than `enUS`: English labels, Monday-first rows, and every row is exactly one ISO week.
+
+Only when each build targets a different **market** (e.g. `en-US` for US customers, `fr-FR` for
+French ones) should the numbering follow the build. Provide `DC_WEEK_NUMBER_FN` with a factory:
+
+```ts
+import { inject, LOCALE_ID } from '@angular/core';
+import {
+  DC_WEEK_NUMBER_FN,
+  dcIsoWeekNumber,
+  dcLocaleWeekNumber,
+} from '@jcdfr/ng-deco/week-numbers';
+
+providers: [
+  {
+    provide: DC_WEEK_NUMBER_FN,
+    useFactory: () => (inject(LOCALE_ID) === 'en-US' ? dcLocaleWeekNumber : dcIsoWeekNumber),
+  },
+];
+```
+
+Prefer `provideDcWeekNumberFn()` otherwise: unlike a raw provider, it is type-checked.
 
 ### CSS variables
 

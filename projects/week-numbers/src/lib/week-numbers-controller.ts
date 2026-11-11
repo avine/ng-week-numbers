@@ -10,8 +10,8 @@ import {
 import { DateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { DateAdapter } from '@angular/material/core';
 import { MatCalendar } from '@angular/material/datepicker';
-import { dcRowStart } from './week-number-fns';
-import { DC_WEEK_NUMBERS_CONFIG } from './week-numbers-config';
+import { dcFormatWeekNumber, dcRowStart } from './week-number-fns';
+import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
 import { DcWeekNumbersIntl } from './week-numbers-intl';
 
 const CELL_CLASS = 'dc-week-number';
@@ -45,7 +45,7 @@ const claimedCalendars = new WeakSet<HTMLElement>();
 export class DcWeekNumbersController {
   private readonly calendar = inject<MatCalendar<Date>>(MatCalendar);
   private readonly adapter = inject(DateAdapter);
-  private readonly config = inject(DC_WEEK_NUMBERS_CONFIG);
+  private readonly weekNumberFn = inject(DC_WEEK_NUMBER_FN);
   private readonly intl = inject(DcWeekNumbersIntl);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
@@ -134,8 +134,8 @@ export class DcWeekNumbersController {
         continue;
       }
       const rowStart = dcRowStart(firstOfMonth, Number(dayCell.dataset['matRow']), adapter);
-      const week = this.config.weekNumberFn(rowStart, adapter);
-      tr.prepend(this.createWeekCell(week, this.config.formatWeekNumber(week, adapter)));
+      const week = this.weekNumberFn(rowStart, adapter);
+      tr.prepend(this.createWeekCell(week, dcFormatWeekNumber(week, adapter)));
     }
   }
 

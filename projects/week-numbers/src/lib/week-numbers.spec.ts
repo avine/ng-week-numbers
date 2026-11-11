@@ -2,6 +2,7 @@ import {
   ApplicationRef,
   Component,
   inject,
+  LOCALE_ID,
   provideZonelessChangeDetection,
   signal,
   Type,
@@ -19,13 +20,15 @@ import {
 import type { Locale } from 'date-fns';
 import { enUS, fr } from 'date-fns/locale';
 import {
+  DC_WEEK_NUMBER_FN,
   dcIsoWeekNumber,
   dcLocaleWeekNumber,
+  type DcWeekNumberFn,
   DcWeekNumberHeader,
   DcWeekNumbers,
   DcWeekNumbersController,
   DcWeekNumbersIntl,
-  provideDcWeekNumbers,
+  provideDcWeekNumberFn,
 } from '../public-api';
 
 describe('week number strategies', () => {
@@ -132,9 +135,24 @@ describe('DcWeekNumbers', () => {
   });
 
   it('accepts a custom numbering strategy', async () => {
-    const { root } = setup([provideDcWeekNumbers({ weekNumberFn: () => 0 })]);
+    const { root } = setup([provideDcWeekNumberFn(() => 0)]);
     await flush();
     expect(new Set(weekNumbers(root))).toEqual(new Set(['0']));
+  });
+
+  it.each([
+    ['en-US', '1'],
+    ['fr', '2'],
+  ])('accepts a DC_WEEK_NUMBER_FN factory (Angular i18n build %s)', async (localeId, expected) => {
+    const { root } = setup([
+      { provide: LOCALE_ID, useValue: localeId },
+      {
+        provide: DC_WEEK_NUMBER_FN,
+        useFactory: (): DcWeekNumberFn => (inject(LOCALE_ID) === 'en-US' ? () => 1 : () => 2),
+      },
+    ]);
+    await flush();
+    expect(new Set(weekNumbers(root))).toEqual(new Set([expected]));
   });
 });
 
@@ -295,7 +313,7 @@ describe('DcWeekNumbers — date-fns', () => {
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: fr },
-        provideDcWeekNumbers({ weekNumberFn: dcLocaleWeekNumber }),
+        provideDcWeekNumberFn(dcLocaleWeekNumber),
       ],
     });
     const fixture = TestBed.createComponent(Host);

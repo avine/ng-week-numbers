@@ -8,9 +8,6 @@ import { addDays, type Day, getISOWeek } from 'date-fns';
  */
 export type DcWeekNumberFn = (rowStart: Date, adapter: DateFnsAdapter) => number;
 
-/** Formats the number displayed in a week cell. */
-export type DcWeekNumberFormatFn = (week: number, adapter: DateFnsAdapter) => string;
-
 /**
  * Default strategy: ISO 8601 week of the row's Monday.
  * ISO weeks are the European standard, whatever the locale. With a locale whose week starts on
@@ -47,7 +44,7 @@ export const dcLocaleWeekNumber: DcWeekNumberFn = (rowStart, adapter) =>
  * are not Gregorian day numbers (see the `fa-IR` note in the README).
  * Falls back to Latin digits if exactly ten decimal digits cannot be found.
  */
-export const dcFormatWeekNumber: DcWeekNumberFormatFn = (week, adapter) => {
+export function dcFormatWeekNumber(week: number, adapter: DateFnsAdapter): string {
   const found =
     adapter
       .getDateNames()
@@ -58,7 +55,7 @@ export const dcFormatWeekNumber: DcWeekNumberFormatFn = (week, adapter) => {
     return String(week);
   }
   return String(week).replace(/\d/g, (d) => digits[Number(d)]);
-};
+}
 
 /** First day displayed on a given row of the month view. */
 export function dcRowStart(firstOfMonth: Date, rowIndex: number, adapter: DateFnsAdapter): Date {

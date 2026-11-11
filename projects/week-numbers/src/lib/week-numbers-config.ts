@@ -1,37 +1,31 @@
 import { EnvironmentProviders, InjectionToken, makeEnvironmentProviders } from '@angular/core';
-import {
-  DcWeekNumberFn,
-  DcWeekNumberFormatFn,
-  dcFormatWeekNumber,
-  dcIsoWeekNumber,
-} from './week-number-fns';
-
-export interface DcWeekNumbersConfig {
-  /** Computes the week number of a row. Defaults to ISO 8601 (`dcIsoWeekNumber`). */
-  weekNumberFn: DcWeekNumberFn;
-  /** Formats the displayed number. Defaults to the same digits as the day cells. */
-  formatWeekNumber: DcWeekNumberFormatFn;
-}
-
-const DEFAULT_CONFIG: DcWeekNumbersConfig = {
-  weekNumberFn: dcIsoWeekNumber,
-  formatWeekNumber: dcFormatWeekNumber,
-};
-
-export const DC_WEEK_NUMBERS_CONFIG = new InjectionToken<DcWeekNumbersConfig>(
-  'DC_WEEK_NUMBERS_CONFIG',
-  { providedIn: 'root', factory: () => DEFAULT_CONFIG },
-);
+import { DcWeekNumberFn, dcIsoWeekNumber } from './week-number-fns';
 
 /**
- * Optional configuration override.
+ * Computes the week number of a calendar row. Defaults to ISO 8601 (`dcIsoWeekNumber`).
+ *
+ * Prefer `provideDcWeekNumberFn()` (type-checked). Provide the token directly only when the
+ * strategy depends on another injectable, e.g. one per build with Angular i18n:
  *
  * ```ts
- * provideDcWeekNumbers({ weekNumberFn: dcLocaleWeekNumber }) // locale numbering (e.g. US)
+ * {
+ *   provide: DC_WEEK_NUMBER_FN,
+ *   useFactory: () => (inject(LOCALE_ID) === 'en-US' ? dcLocaleWeekNumber : dcIsoWeekNumber),
+ * }
  * ```
  */
-export function provideDcWeekNumbers(config: Partial<DcWeekNumbersConfig>): EnvironmentProviders {
-  return makeEnvironmentProviders([
-    { provide: DC_WEEK_NUMBERS_CONFIG, useValue: { ...DEFAULT_CONFIG, ...config } },
-  ]);
+export const DC_WEEK_NUMBER_FN = new InjectionToken<DcWeekNumberFn>('DC_WEEK_NUMBER_FN', {
+  providedIn: 'root',
+  factory: () => dcIsoWeekNumber,
+});
+
+/**
+ * Overrides the week numbering.
+ *
+ * ```ts
+ * provideDcWeekNumberFn(dcLocaleWeekNumber) // locale numbering (e.g. US)
+ * ```
+ */
+export function provideDcWeekNumberFn(weekNumberFn: DcWeekNumberFn): EnvironmentProviders {
+  return makeEnvironmentProviders([{ provide: DC_WEEK_NUMBER_FN, useValue: weekNumberFn }]);
 }
