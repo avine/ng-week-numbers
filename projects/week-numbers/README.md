@@ -29,19 +29,32 @@ component.
 ## Usage
 
 ```ts
-import { DcWeekNumberHeader } from '@jcdfr/ng-deco/week-numbers';
+import { DcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
 
-@Component({ imports: [MatDatepickerModule], … })
-export class MyComponent {
-  readonly weekNumberHeader = DcWeekNumberHeader;
-}
+@Component({ imports: [MatDatepickerModule, DcWeekNumbers], … })
+```
+
+```html
+<mat-datepicker dcWeekNumbers />
+<mat-date-range-picker dcWeekNumbers />
+<mat-calendar dcWeekNumbers />
+```
+
+The directive sets `DcWeekNumberHeader` as the calendar header (`calendarHeaderComponent` /
+`headerComponent`). The header can also be bound explicitly, without the directive:
+
+```ts
+readonly weekNumberHeader = DcWeekNumberHeader;
 ```
 
 ```html
 <mat-datepicker [calendarHeaderComponent]="weekNumberHeader" />
-<mat-date-range-picker [calendarHeaderComponent]="weekNumberHeader" />
 <mat-calendar [headerComponent]="weekNumberHeader" />
 ```
+
+⚠️ Do not combine `dcWeekNumbers` with `[calendarHeaderComponent]` / `[headerComponent]`: the
+binding wins and the directive has no effect (a `console.warn` reports it in dev mode). For a
+custom header, see [Custom header](#custom-header).
 
 `DcWeekNumberHeader` renders Material's own `<mat-calendar-header>` (period button, previous /
 next buttons, `MatDatepickerIntl` labels, `minDate` / `maxDate` handling) followed by the week
@@ -203,6 +216,8 @@ export class MyHeader { … }
 ```html
 <mat-datepicker [calendarHeaderComponent]="MyHeader" />
 ```
+
+No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 ## Accessibility
 

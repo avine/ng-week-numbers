@@ -6,6 +6,9 @@ import { DcWeekRuler } from './week-ruler';
  * Calendar header with week numbers: the standard Material header (period button, previous /
  * next buttons, labels from `MatDatepickerIntl`), then the week ruler (`DcWeekRuler`).
  *
+ * Usually applied through the `dcWeekNumbers` directive (`<mat-datepicker dcWeekNumbers />`),
+ * or bound explicitly:
+ *
  * ```html
  * <mat-datepicker [calendarHeaderComponent]="DcWeekNumberHeader" />
  * <mat-date-range-picker [calendarHeaderComponent]="DcWeekNumberHeader" />

@@ -26,6 +26,7 @@ import {
   dcLocaleWeekNumber,
   type DcWeekNumberFn,
   DcWeekNumberHeader,
+  DcWeekNumbers,
   type DcWeekNumbersIntl,
   DcWeekRuler,
   provideDcWeekNumberFn,
@@ -667,5 +668,99 @@ describe('DcWeekNumberHeader — date-fns', () => {
       '20 – 26',
       '27 – 31',
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// dcWeekNumbers directive
+// ---------------------------------------------------------------------------
+
+@Component({
+  imports: [MatDatepickerModule, DcWeekNumbers],
+  template: `
+    <mat-calendar class="inline" dcWeekNumbers [startAt]="startAt" />
+    <input [matDatepicker]="picker" />
+    <mat-datepicker #picker dcWeekNumbers [startAt]="startAt" />
+    <mat-date-range-input [rangePicker]="range"
+      ><input matStartDate /><input matEndDate
+    /></mat-date-range-input>
+    <mat-date-range-picker #range dcWeekNumbers [startAt]="startAt" />
+  `,
+})
+class DirectiveHost {
+  readonly startAt = new Date(2026, 10, 5);
+  readonly picker = viewChild.required<MatDatepicker<Date>>('picker');
+  readonly range = viewChild.required<MatDateRangePicker<Date>>('range');
+}
+
+@Component({
+  imports: [MatDatepickerModule, DcWeekNumbers],
+  template: `
+    <mat-calendar class="inline" dcWeekNumbers [headerComponent]="header" [startAt]="startAt" />
+  `,
+})
+class DirectiveConflictHost {
+  readonly header = CustomHeader;
+  readonly startAt = new Date(2026, 10, 5);
+}
+
+describe('DcWeekNumbers', () => {
+  let warn: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    TestBed.configureTestingModule({
+      providers: [
+        provideZonelessChangeDetection(),
+        provideDateFnsAdapter(),
+        { provide: MAT_DATE_LOCALE, useValue: fr },
+        provideLabels(),
+      ],
+    });
+  });
+
+  afterEach(() => {
+    warn.mockRestore();
+    document.querySelectorAll('.cdk-overlay-container').forEach((el) => el.remove());
+  });
+
+  const overlay = () => document.querySelector<HTMLElement>('.mat-datepicker-content')!;
+
+  it('mat-calendar: applies DcWeekNumberHeader', async () => {
+    const fixture = TestBed.createComponent(DirectiveHost);
+    await flush(fixture);
+    const inline = fixture.nativeElement.querySelector('mat-calendar.inline') as HTMLElement;
+    expect(inline.querySelector('dc-week-number-header mat-calendar-header')).not.toBeNull();
+    expect(weekNumbers(inline)).toEqual(NOVEMBER_2026);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('mat-datepicker: applies DcWeekNumberHeader in the popup', async () => {
+    const fixture = TestBed.createComponent(DirectiveHost);
+    await flush(fixture);
+    fixture.componentInstance.picker().open();
+    await flush(fixture);
+    expect(overlay().querySelector('dc-week-number-header')).not.toBeNull();
+    expect(weekNumbers(overlay())).toEqual(NOVEMBER_2026);
+  });
+
+  it('mat-date-range-picker: applies DcWeekNumberHeader in the popup', async () => {
+    const fixture = TestBed.createComponent(DirectiveHost);
+    await flush(fixture);
+    fixture.componentInstance.range().open();
+    await flush(fixture);
+    expect(overlay().querySelector('dc-week-number-header')).not.toBeNull();
+    expect(weekNumbers(overlay())).toEqual(NOVEMBER_2026);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('warns in dev mode when [headerComponent] overrides the directive', async () => {
+    const fixture = TestBed.createComponent(DirectiveConflictHost);
+    await flush(fixture);
+    const inline = fixture.nativeElement.querySelector('mat-calendar.inline') as HTMLElement;
+    // The binding wins: the custom header (which embeds the ruler) is rendered.
+    expect(inline.querySelector('.custom-header')).not.toBeNull();
+    expect(inline.querySelector('dc-week-number-header')).toBeNull();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('<dc-week-ruler />'));
   });
 });
