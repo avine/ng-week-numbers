@@ -2,7 +2,8 @@ import { InjectionToken, type Provider } from '@angular/core';
 import { dcIsoWeekNumber, type DcWeekNumberFn } from './week-number-fns';
 
 /**
- * Computes the week number of a calendar row. Defaults to ISO 8601 (`dcIsoWeekNumber`).
+ * Computes the number of the week that contains a date, which also defines the days of each
+ * week button. Defaults to ISO 8601 (`dcIsoWeekNumber`).
  *
  * Prefer `provideDcWeekNumberFn()` (type-checked). Provide the token directly only when the
  * strategy depends on another injectable, e.g. one per build with Angular i18n:

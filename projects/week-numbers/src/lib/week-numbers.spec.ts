@@ -435,19 +435,28 @@ describe('DcWeekNumberHeader', () => {
     expect(() => fixture.detectChanges()).toThrow(/DC_WEEK_NUMBERS_INTL/);
   });
 
-  it('accepts a custom numbering strategy', async () => {
+  it('accepts a custom numbering strategy, which also groups the days into weeks', async () => {
+    // "Decades" of the month: 1–10, 11–20, 21–30.
+    const { fixture, root } = setup([
+      provideDcWeekNumberFn((date) => Math.ceil(date.getDate() / 10)),
+    ]);
+    await flush(fixture);
+    expect(weekNumbers(root)).toEqual(['1', '2', '3']);
+    expect(tooltips(fixture)).toEqual(['1 – 10', '11 – 20', '21 – 30']);
+  });
+
+  it('a constant strategy gives a single week for the whole month', async () => {
     const { fixture, root } = setup([provideDcWeekNumberFn(() => 0)]);
     await flush(fixture);
-    expect(new Set(weekNumbers(root))).toEqual(new Set(['0']));
+    expect(weekNumbers(root)).toEqual(['0']);
+    expect(tooltips(fixture)).toEqual(['1 – 30']);
   });
 
   it('accepts a numbering strategy provided by a component', async () => {
     const { fixture, root } = setup([], TwoCalendars);
     await flush(fixture);
     expect(weekNumbers(root.querySelector('.app-calendar')!)).toEqual(NOVEMBER_2026);
-    expect(new Set(weekNumbers(root.querySelector('test-overriding-calendar')!))).toEqual(
-      new Set(['7']),
-    );
+    expect(weekNumbers(root.querySelector('test-overriding-calendar')!)).toEqual(['7']);
   });
 
   it.each([
@@ -462,7 +471,7 @@ describe('DcWeekNumberHeader', () => {
       },
     ]);
     await flush(fixture);
-    expect(new Set(weekNumbers(root))).toEqual(new Set([expected]));
+    expect(weekNumbers(root)).toEqual([expected]);
   });
 });
 

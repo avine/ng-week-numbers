@@ -101,10 +101,10 @@ export class DcWeekNumbersRuler {
 
   /**
    * One chip per week of the displayed month. The adapter is not a signal: its locale is
-   * read on every run, and `state` re-runs this computed on `localeChanges`.
+   * read on every run, and `calendarState` re-runs this computed on `localeChanges`.
    */
   protected readonly weekChips = computed<WeekChip[]>(() => {
-    // 1. Inputs: `state` and `intl` are the only reactive dependencies.
+    // 1. Inputs: `calendarState` and `intl` are the only reactive dependencies.
     const adapter = this.adapter;
     const { activeDate, selected, minDate, maxDate } = this.calendarState();
     const intl = this.intl();
@@ -125,28 +125,28 @@ export class DcWeekNumbersRuler {
         ? adapter.getDate(today)
         : null;
 
-    // 4. One iteration per week: the days of the month with the same number are consecutive.
+    // 4. Week number of each day of the displayed month (one strategy call per day).
     //    Only the days of the displayed month count (the others are not displayed).
+    const weeks = Array.from({ length: numDays }, (_, i) =>
+      this.weekNumberFn(adapter.createDate(year, month, i + 1), adapter),
+    );
+
+    // 5. One chip per run of consecutive days with the same number.
     const weekChips: WeekChip[] = [];
     for (let firstDay = 1; firstDay <= numDays;) {
-      const target = adapter.createDate(year, month, firstDay);
-      const week = this.weekNumberFn(target, adapter);
+      const week = weeks[firstDay - 1];
       let lastDay = firstDay;
-      while (
-        lastDay < numDays &&
-        this.weekNumberFn(adapter.createDate(year, month, lastDay + 1), adapter) === week
-      ) {
-        lastDay++;
-      }
+      while (lastDay < numDays && weeks[lastDay] === week) lastDay++;
+      const target = adapter.createDate(year, month, firstDay);
       const last = adapter.createDate(year, month, lastDay);
 
-      // 5. Tooltip: days of the month in the week, e.g. `9 – 15`, or `1`.
+      // 6. Tooltip: days of the month in the week, e.g. `9 – 15`, or `1`.
       const days =
         firstDay === lastDay
           ? dayNames[firstDay - 1]
           : `${dayNames[firstDay - 1]} – ${dayNames[lastDay - 1]}`;
 
-      // 6. Chip.
+      // 7. Chip.
       weekChips.push({
         firstDay,
         text: dcFormatWeekNumber(week, adapter),
@@ -168,7 +168,7 @@ export class DcWeekNumbersRuler {
       firstDay = lastDay + 1;
     }
 
-    // 7. Chronological order; `firstDay` is the `@for` track key.
+    // 8. Chronological order; `firstDay` is the `@for` track key.
     return weekChips;
   });
 
