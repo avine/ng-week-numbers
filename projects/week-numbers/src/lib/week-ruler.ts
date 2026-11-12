@@ -1,4 +1,11 @@
-import { Component, computed, DestroyRef, inject, isDevMode } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  isDevMode,
+  ViewEncapsulation,
+} from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { DateAdapter } from '@angular/material/core';
@@ -60,6 +67,7 @@ interface CalendarState {
   imports: [MatTooltip],
   templateUrl: './week-ruler.html',
   styleUrl: './week-ruler.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class DcWeekRuler {
   private readonly calendar = inject<MatCalendar<Date>>(MatCalendar);

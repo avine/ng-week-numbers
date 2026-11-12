@@ -181,19 +181,10 @@ providers: [
 
 Prefer `provideDcWeekNumberFn()` otherwise: unlike a raw provider, it is type-checked.
 
-### CSS variables
+### Theming
 
-Defaults follow the Material 3 system tokens (`--mat-sys-*`), with fallbacks for themes that do
-not define them.
-
-| Variable                                | Default                        |
-| --------------------------------------- | ------------------------------ |
-| `--dc-week-numbers-color`               | `--mat-sys-primary`            |
-| `--dc-week-numbers-border-color`        | `--mat-sys-outline-variant`    |
-| `--dc-week-numbers-selected-background` | `--mat-sys-primary`            |
-| `--dc-week-numbers-selected-color`      | `--mat-sys-on-primary`         |
-| `--dc-week-numbers-caption-color`       | `--mat-sys-on-surface-variant` |
-| `--dc-week-numbers-font`                | `'Roboto Mono', monospace`     |
+Colors and typography come from the Material 3 system tokens (`--mat-sys-*`) of the application
+theme.
 
 ### Custom header
 

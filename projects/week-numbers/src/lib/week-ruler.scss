@@ -1,92 +1,98 @@
-// Week ruler of the calendar header. Material 3 system tokens, with the design fallbacks.
-//
-// Customization through CSS variables:
-//   --dc-week-numbers-color                week number color
-//   --dc-week-numbers-border-color         button border color
-//   --dc-week-numbers-selected-background  background of the selected week
-//   --dc-week-numbers-selected-color       week number color of the selected week
-//   --dc-week-numbers-caption-color        caption ("Wk") color
-//   --dc-week-numbers-font                 week number font
-
-:host {
-  display: block;
-}
-
 .dc-week-ruler {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px 16px;
-}
+  display: block;
+  // The ruler spans the calendar: its width drives the chip height, like the day cells.
+  container-type: inline-size;
+  padding-inline: 8px;
 
-.dc-week-ruler-caption {
-  flex: none;
-  width: 30px;
-  font-family: var(--mat-sys-label-small-font, Roboto, sans-serif);
-  font-size: 11px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--dc-week-numbers-caption-color, var(--mat-sys-on-surface-variant, #6b6e78));
-}
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
 
-.dc-week-ruler-chip {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 30px;
-  margin: 0;
-  padding: 0;
-  border: 1px solid var(--dc-week-numbers-border-color, var(--mat-sys-outline-variant, #c5c8d4));
-  border-radius: 8px;
-  background-color: transparent;
-  color: var(--dc-week-numbers-color, var(--mat-sys-primary, #203f78));
-  font: 500 12px/1 var(--dc-week-numbers-font, 'Roboto Mono', ui-monospace, monospace);
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
+    margin-bottom: 7%;
+    padding: 2% 6%;
 
-  // Material state layer: 8% of the content color, painted *over* the background color so it
-  // works on both states (white veil on the filled selected week, primary veil on the others).
-  &:hover:not(:disabled) {
-    --_dc-wn-state-layer: color-mix(in srgb, currentColor 8%, transparent);
-    background-image: linear-gradient(var(--_dc-wn-state-layer), var(--_dc-wn-state-layer));
+    border-radius: 0;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-width: 1px 0;
   }
 
-  &:focus-visible {
-    outline: 2px solid var(--mat-sys-primary, #3a5a9a);
-    outline-offset: 2px;
+  &__caption {
+    flex: none;
+
+    padding-inline: 0.5em;
+
+    color: var(--mat-datepicker-calendar-header-text-color, var(--mat-sys-on-surface-variant));
+    text-transform: uppercase;
+
+    font-size: var(--mat-datepicker-calendar-header-text-size, var(--mat-sys-title-small-size));
+    font-weight: var(
+      --mat-datepicker-calendar-header-text-weight,
+      var(--mat-sys-title-small-weight)
+    );
   }
 
-  &:disabled {
-    cursor: default;
-    opacity: 0.38;
-  }
+  &__chip {
+    flex: 1;
+    position: relative;
+    cursor: pointer;
 
-  &.dc-week-ruler-chip-selected {
-    border-color: transparent;
-    background-color: var(--dc-week-numbers-selected-background, var(--mat-sys-primary, #3a5a9a));
-    color: var(--dc-week-numbers-selected-color, var(--mat-sys-on-primary, #fff));
-  }
+    min-width: 0;
+    // Follows the day cells: a column of the month grid is (calendar width - 16px content
+    // padding) / 7, the day circle 90% of it. 75% gives 30px in the default 296px popup.
+    height: calc((100cqi - 16px) / 7 * 0.75);
+    margin: 0;
+    padding: 0;
 
-  // Current week: 4 × 4 dot, 3px from the bottom.
-  &.dc-week-ruler-chip-today::after {
-    content: '';
-    position: absolute;
-    bottom: 3px;
-    left: 50%;
-    width: 4px;
-    height: 4px;
-    margin-left: -2px;
-    border-radius: 2px;
-    background: currentColor;
-  }
-}
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--mat-sys-primary);
 
-@media (forced-colors: active) {
-  .dc-week-ruler-chip.dc-week-ruler-chip-selected {
-    border-color: Highlight;
-    background: Highlight;
-    color: HighlightText;
+    font-family: var(--mat-datepicker-calendar-text-font, var(--mat-sys-body-medium-font));
+    font-size: var(--mat-datepicker-calendar-text-size, var(--mat-sys-body-medium-size));
+
+    &:hover:not(:disabled) {
+      background-color: var(
+        --mat-datepicker-calendar-date-hover-state-background-color,
+        color-mix(
+          in srgb,
+          var(--mat-sys-on-surface) calc(var(--mat-sys-hover-state-layer-opacity) * 100%),
+          transparent
+        )
+      );
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.38;
+    }
+
+    &--today {
+      border-color: var(--mat-datepicker-calendar-date-today-outline-color, var(--mat-sys-primary));
+    }
+
+    &--selected {
+      border-color: transparent;
+      background-color: var(
+        --mat-datepicker-calendar-date-selected-state-background-color,
+        var(--mat-sys-primary)
+      ) !important;
+      color: var(
+        --mat-datepicker-calendar-date-selected-state-text-color,
+        var(--mat-sys-on-primary)
+      );
+
+      @media (forced-colors: active) {
+        border-color: Highlight;
+        background: Highlight;
+        color: HighlightText;
+      }
+    }
   }
 }

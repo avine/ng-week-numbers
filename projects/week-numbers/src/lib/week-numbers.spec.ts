@@ -83,14 +83,14 @@ const flush = async (fixture: ComponentFixture<unknown>) => {
 };
 
 const chips = (root: ParentNode) =>
-  Array.from(root.querySelectorAll<HTMLButtonElement>('.dc-week-ruler-chip'));
+  Array.from(root.querySelectorAll<HTMLButtonElement>('.dc-week-ruler__chip'));
 
 const weekNumbers = (root: ParentNode) => chips(root).map((chip) => chip.textContent!.trim());
 
 /** Week numbers of the filled buttons. */
 const selectedWeeks = (root: ParentNode) =>
   chips(root)
-    .filter((chip) => chip.classList.contains('dc-week-ruler-chip-selected'))
+    .filter((chip) => chip.classList.contains('dc-week-ruler__chip--selected'))
     .map((chip) => chip.textContent!.trim());
 
 const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
@@ -197,14 +197,16 @@ describe('DcWeekNumberHeader', () => {
     expect(
       root.querySelector<HTMLTableCellElement>('.mat-calendar-table-header-divider')!.colSpan,
     ).toBe(7);
-    expect(root.querySelector('.mat-calendar-table .dc-week-ruler-chip')).toBeNull();
+    expect(root.querySelector('.mat-calendar-table .dc-week-ruler__chip')).toBeNull();
   });
 
   it('fills nothing without selection and marks the current week', async () => {
     const { fixture, root } = setup();
     await flush(fixture);
     expect(selectedWeeks(root)).toEqual([]);
-    const today = chips(root).filter((chip) => chip.classList.contains('dc-week-ruler-chip-today'));
+    const today = chips(root).filter((chip) =>
+      chip.classList.contains('dc-week-ruler__chip--today'),
+    );
     expect(today.map((chip) => chip.textContent!.trim())).toEqual(['46']);
   });
 
@@ -232,8 +234,8 @@ describe('DcWeekNumberHeader', () => {
     fixture.componentInstance.selected = new Date(2026, 10, 12);
     await flush(fixture);
     const week46 = chips(root)[2];
-    expect(week46.classList).toContain('dc-week-ruler-chip-selected');
-    expect(week46.classList).toContain('dc-week-ruler-chip-today');
+    expect(week46.classList).toContain('dc-week-ruler__chip--selected');
+    expect(week46.classList).toContain('dc-week-ruler__chip--today');
   });
 
   it('exposes the days of each row as tooltip and accessible label', async () => {
@@ -258,10 +260,10 @@ describe('DcWeekNumberHeader', () => {
       null,
       null,
     ]);
-    const group = root.querySelector('.dc-week-ruler')!;
+    const group = root.querySelector('.dc-week-ruler__group')!;
     expect(group.getAttribute('role')).toBe('group');
     expect(group.getAttribute('aria-label')).toBe('Numéros de semaine');
-    expect(group.querySelector('.dc-week-ruler-caption')!.textContent).toBe('Sem.');
+    expect(group.querySelector('.dc-week-ruler__caption')!.textContent).toBe('Sem.');
   });
 
   it('click: moves the active date and the focus to the first day of the row in the month', async () => {
@@ -363,7 +365,7 @@ describe('DcWeekNumberHeader', () => {
       '18 – 24',
       '25 – 31',
     ]);
-    expect(chips(root).some((chip) => chip.classList.contains('dc-week-ruler-chip-today'))).toBe(
+    expect(chips(root).some((chip) => chip.classList.contains('dc-week-ruler__chip--today'))).toBe(
       false,
     );
 
@@ -382,11 +384,11 @@ describe('DcWeekNumberHeader', () => {
     root.querySelector<HTMLButtonElement>('.mat-calendar-period-button')!.click();
     await flush(fixture);
     expect(calendar.currentView).toBe('multi-year');
-    expect(root.querySelector('.dc-week-ruler')).toBeNull();
+    expect(root.querySelector('.dc-week-ruler__group')).toBeNull();
 
     calendar.currentView = 'year';
     await flush(fixture);
-    expect(root.querySelector('.dc-week-ruler')).toBeNull();
+    expect(root.querySelector('.dc-week-ruler__group')).toBeNull();
 
     calendar.currentView = 'month';
     await flush(fixture);
@@ -424,8 +426,10 @@ describe('DcWeekNumberHeader', () => {
       weekNumber: (n, days) => `Week ${n} (${days})`,
     });
     await flush(fixture);
-    expect(root.querySelector('.dc-week-ruler-caption')!.textContent).toBe('Wk');
-    expect(root.querySelector('.dc-week-ruler')!.getAttribute('aria-label')).toBe('Week numbers');
+    expect(root.querySelector('.dc-week-ruler__caption')!.textContent).toBe('Wk');
+    expect(root.querySelector('.dc-week-ruler__group')!.getAttribute('aria-label')).toBe(
+      'Week numbers',
+    );
     expect(chips(root)[1].getAttribute('aria-label')).toBe('Week 45 (2 – 8)');
   });
 
@@ -634,7 +638,7 @@ describe('DcWeekNumberHeader — date-fns', () => {
     const root = fixture.nativeElement as HTMLElement;
     await flush(fixture);
     expect(root.querySelector('mat-calendar-header')).not.toBeNull();
-    expect(root.querySelector('.dc-week-ruler')).toBeNull();
+    expect(root.querySelector('.dc-week-ruler__group')).toBeNull();
     expect(error).toHaveBeenCalledWith(expect.stringContaining('DateFnsAdapter'));
     error.mockRestore();
   });

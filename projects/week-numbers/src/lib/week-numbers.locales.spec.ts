@@ -200,7 +200,7 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
           tr.querySelector('[data-mat-row]'),
         );
         if (rows.length < 4) mismatches.push(`${year}-${month + 1}: only ${rows.length} rows`);
-        const chips = Array.from(root.querySelectorAll('.dc-week-ruler-chip'));
+        const chips = Array.from(root.querySelectorAll('.dc-week-ruler__chip'));
         if (chips.length !== rows.length) {
           mismatches.push(`${year}-${month + 1}: ${chips.length} buttons, ${rows.length} rows`);
         }
