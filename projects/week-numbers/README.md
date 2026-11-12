@@ -3,8 +3,8 @@
 **Week numbers** (ISO 8601 by default) in the header of the Angular Material calendar:
 `mat-datepicker`, `mat-date-range-picker` and inline `mat-calendar`.
 
-Below the standard Material header, a ruler shows one button per row of the month grid, in the
-same order. The week of the selected date is filled (every week of a selected range), the current
+Below the standard Material header, a ruler shows one button per week of the displayed month,
+in chronological order. The week of the selected date is filled (every week of a selected range), the current
 week carries a dot, and clicking a week moves the active date (and the focus) to its first day in
 the month — or to `minDate` when that day is earlier — without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
 the year and multi-year views.
@@ -61,8 +61,10 @@ next buttons, `MatDatepickerIntl` labels, `minDate` / `maxDate` handling) follow
 ruler. In a popup, Material lets the panel grow with a custom header, so the extra row fits.
 
 Rows start on the date-fns locale's `weekStartsOn` (Monday for `fr`, Sunday for `enUS`,
-Saturday for `faIR`…). By default each row shows the **ISO 8601** week of its Monday — the
-European standard, identical to the locale numbering for `fr`. Week numbers use the same digits
+Saturday for `faIR`…). By default weeks are **ISO 8601** weeks (Monday → Sunday) — the European
+standard, identical to the locale numbering for `fr`, where each week is a row of the grid. With
+Sunday-first rows (`enUS`), an ISO week spans two rows: Sunday Nov 15th 2026 belongs to week 46
+(Mon 9 → Sun 15), and November 2026 shows weeks 44 (Sunday 1st) to 49 (Monday 30th). Week numbers use the same digits
 as the day cells (Arabic-Indic for `arEG`, Bengali for `bn`, Persian for `faIR`…), and follow
 `DateAdapter#setLocale()` at runtime.
 
@@ -70,10 +72,10 @@ as the day cells (Arabic-Indic for `arEG`, Bengali for `bn`, Persian for `faIR`�
 
 `week-numbers.locales.spec.ts` checks **every locale exported by `date-fns/locale`** (95)
 against independent oracles (week numbers recomputed from their definition, digits from the
-numbering system Intl resolves, rows located from the rendered DOM):
+numbering system Intl resolves, days located from the rendered DOM):
 
-- both strategies (`dcIsoWeekNumber`, `dcLocaleWeekNumber`), every week from 2000 to 2040;
-- the rendered calendar (one button per grid row in the same order, ISO number, digits), every
+- both strategies (`dcIsoWeekNumber`, `dcLocaleWeekNumber`), every day from 2000 to 2040;
+- the rendered calendar (one button per ISO week of the displayed days, in order, digits), every
   month from 2024 to 2028.
 
 ### Known limitation of Material with `faIR`
@@ -109,7 +111,7 @@ providers: [
       shortWeek: 'Wk', // visible caption in front of the week numbers (keep it short)
       week: 'Week numbers', // name of the group of buttons, read by screen readers
       // label of each week button, read by screen readers: "Week 46, 9 – 15"
-      // `days`: days of the displayed month covered by the row, also shown as tooltip
+      // `days`: days of the displayed month in the week, also shown as tooltip
       weekNumber: (n, days) => `Week ${n}, ${days}`,
     }),
   },
@@ -130,9 +132,9 @@ providers: [
 ];
 ```
 
-| Strategy                    | Week number of a row                   |
+| Strategy                    | Week number of a date                  |
 | --------------------------- | -------------------------------------- |
-| `dcIsoWeekNumber` (default) | ISO 8601 week of the row's Monday      |
+| `dcIsoWeekNumber` (default) | ISO 8601 week (Monday → Sunday)        |
 | `dcLocaleWeekNumber`        | week as defined by the date-fns locale |
 
 ⚠️ date-fns locale data does not always match the official convention of the country:
@@ -142,9 +144,9 @@ the audience expects its locale-specific numbering.
 `provideDcWeekNumberFn()` also works in the `providers` of a component, to change the numbering
 of its calendars only.
 
-A custom `DcWeekNumberFn` (`(rowStart: Date, adapter: DateFnsAdapter) => number`) can also be
-provided (e.g. fiscal weeks). It receives the first day displayed on the row (which may belong
-to the previous month). Week numbers are always written with the same digits as the day cells.
+A custom `DcWeekNumberFn` (`(date: Date, adapter: DateFnsAdapter) => number`) can also be
+provided (e.g. fiscal weeks). It returns the number of the week that contains `date`; the ruler
+shows one button per run of consecutive days of the month sharing the same number. Week numbers are always written with the same digits as the day cells.
 
 ### Angular i18n (one build per locale)
 
@@ -153,7 +155,7 @@ Every build shares the same providers, so:
 - `MAT_DATE_LOCALE` must follow the build's `LOCALE_ID` (day names, first day of the week);
 - with the ISO default, a given date has **the same week number in every build**, which is
   usually what the business expects ("delivery in week 53");
-- `dcLocaleWeekNumber` follows each build's locale instead: the last row of December 2026 is
+- `dcLocaleWeekNumber` follows each build's locale instead: the last week of December 2026 is
   week **53** in `fr` (Mon Dec 28 → Sun Jan 3) but week **1** in `en-US` (Sun Dec 27 → Sat Jan 2).
 
 Week numbering is a business convention, not a language: an app for a European audience keeps
@@ -220,6 +222,6 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 ## Compatibility
 
-Public Material API only, verified against Angular Material 22.2. The rows of the ruler are
-computed from the locale's first day of the week, exactly like `mat-month-view` does;
+Public Material API only, verified against Angular Material 22.2. The weeks of the ruler are
+matched against the rows `mat-month-view` renders for the locale's first day of the week;
 `week-numbers.locales.spec.ts` checks this against the rendered grid for every date-fns locale.

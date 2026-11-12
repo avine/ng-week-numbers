@@ -14,7 +14,7 @@ import { DcWeekNumberHeader } from './week-number-header';
  *
  * Sets `DcWeekNumberHeader` as the calendar header (`calendarHeaderComponent` /
  * `headerComponent`, public Material inputs). A custom header does not need this directive:
- * embed `<dc-week-ruler />` in it and bind it to `[calendarHeaderComponent]` as usual.
+ * embed `<dc-week-numbers-ruler />` in it and bind it to `[calendarHeaderComponent]` as usual.
  */
 @Directive({
   selector:
@@ -37,8 +37,8 @@ export class DcWeekNumbers {
       afterNextRender(() => {
         if (this.getHeaderComponent() !== DcWeekNumberHeader) {
           console.warn(
-            '[dcWeekNumbers] The calendar header is overridden by [calendarHeaderComponent] / [headerComponent]: dcWeekNumbers has no effect. ' +
-              'To show week numbers in a custom header, embed <dc-week-ruler /> in it and remove dcWeekNumbers.',
+            'DcWeekNumbers: The calendar header is overridden by [calendarHeaderComponent] / [headerComponent]: dcWeekNumbers has no effect. ' +
+              'To show week numbers in a custom header, embed <dc-week-numbers-ruler /> in it and remove dcWeekNumbers.',
           );
         }
       });

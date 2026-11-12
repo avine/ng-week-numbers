@@ -6,24 +6,21 @@ import {
   viewChild,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { DateFnsAdapter, provideDateFnsAdapter } from '@angular/material-date-fns-adapter';
+import { provideDateFnsAdapter, type DateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { format, type Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
-import {
-  DC_WEEK_NUMBER_INTL,
-  dcIsoWeekNumber,
-  dcLocaleWeekNumber,
-  DcWeekNumberHeader,
-} from '../public-api';
+import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-number-fns';
+import { DcWeekNumberHeader } from './week-number-header';
+import { DC_WEEK_NUMBERS_INTL } from './week-numbers-intl';
 
 /**
  * Checks every locale shipped by date-fns against independent oracles:
  * - week numbers are recomputed from their definition (no date-fns, no component code);
  * - expected digits come from the numbering system Intl resolves for the locale;
- * - rows are located from the rendered grid (day number + column), and matched in order with the
- *   week buttons of the header.
+ * - days are located from the rendered grid (day number + column), and their distinct ISO weeks
+ *   matched in order with the week buttons of the header.
  */
 
 const locales = Object.entries(dateFnsLocales as Record<string, Locale>);
@@ -82,7 +79,7 @@ function numberingFor(locale: Locale) {
 // ---------------------------------------------------------------------------
 
 describe.each(locales)('strategies — %s', (_, locale) => {
-  it('dcIsoWeekNumber and dcLocaleWeekNumber match their definition for every row', () => {
+  it('dcIsoWeekNumber and dcLocaleWeekNumber match their definition for every day', () => {
     TestBed.configureTestingModule({
       providers: [provideDateFnsAdapter(), { provide: MAT_DATE_LOCALE, useValue: locale }],
     });
@@ -92,24 +89,16 @@ describe.each(locales)('strategies — %s', (_, locale) => {
     expect(adapter.getFirstDayOfWeek()).toBe(weekStartsOn);
 
     const mismatches: string[] = [];
-    // First row start on or before Jan 1st 2000, then every week until 2040.
-    const start = new Date(2000, 0, 1);
-    start.setDate(start.getDate() - ((start.getDay() - weekStartsOn + 7) % 7));
     for (
-      let rowStart = start;
-      rowStart.getFullYear() < 2041;
-      rowStart = new Date(rowStart.getFullYear(), rowStart.getMonth(), rowStart.getDate() + 7)
+      let date = new Date(2000, 0, 1);
+      date.getFullYear() < 2041;
+      date = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
     ) {
-      const monday = new Date(
-        rowStart.getFullYear(),
-        rowStart.getMonth(),
-        rowStart.getDate() + ((1 - weekStartsOn + 7) % 7),
-      );
-      const iso = dcIsoWeekNumber(rowStart, adapter);
-      if (iso !== oracleIsoWeek(monday)) mismatches.push(`ISO ${rowStart.toDateString()}: ${iso}`);
-      const local = dcLocaleWeekNumber(rowStart, adapter);
-      if (local !== oracleWeek(rowStart, weekStartsOn, firstWeekContainsDate)) {
-        mismatches.push(`locale ${rowStart.toDateString()}: ${local}`);
+      const iso = dcIsoWeekNumber(date, adapter);
+      if (iso !== oracleIsoWeek(date)) mismatches.push(`ISO ${date.toDateString()}: ${iso}`);
+      const local = dcLocaleWeekNumber(date, adapter);
+      if (local !== oracleWeek(date, weekStartsOn, firstWeekContainsDate)) {
+        mismatches.push(`locale ${date.toDateString()}: ${local}`);
       }
     }
     expect(mismatches).toEqual([]);
@@ -148,14 +137,14 @@ function visualColumn(cell: HTMLTableCellElement): number {
 }
 
 describe.each(locales)('rendered calendar — %s', (_, locale) => {
-  it('one button per row, in order, with the ISO week of the row in the locale digits', async () => {
+  it('one button per ISO week of the month, in order, in the locale digits', async () => {
     TestBed.configureTestingModule({
       providers: [
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: locale },
         {
-          provide: DC_WEEK_NUMBER_INTL,
+          provide: DC_WEEK_NUMBERS_INTL,
           useValue: signal({ shortWeek: 'W', week: 'Week', weekNumber: (n: number) => `W${n}` }),
         },
       ],
@@ -200,11 +189,10 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
           tr.querySelector('[data-mat-row]'),
         );
         if (rows.length < 4) mismatches.push(`${year}-${month + 1}: only ${rows.length} rows`);
-        const chips = Array.from(root.querySelectorAll('.dc-week-ruler__chip'));
-        if (chips.length !== rows.length) {
-          mismatches.push(`${year}-${month + 1}: ${chips.length} buttons, ${rows.length} rows`);
-        }
+        const chips = Array.from(root.querySelectorAll('.dc-week-numbers-ruler__chip'));
 
+        // Expected: distinct ISO weeks of the displayed days, in grid order.
+        const expected: string[] = [];
         for (const tr of rows) {
           const where = `${year}-${month + 1} row ${rows.indexOf(tr)}`;
           const cells = Array.from(tr.querySelectorAll<HTMLTableCellElement>('[data-mat-col]'));
@@ -215,19 +203,13 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
             if (date.getMonth() !== month || date.getDay() !== (weekStartsOn + col) % 7) {
               mismatches.push(`${where}: ${date.toDateString()} in column ${col}`);
             }
+            const week = numbering.format(oracleIsoWeek(date));
+            if (expected.at(-1) !== week) expected.push(week);
           }
-          const first = cells[0];
-          const firstDate = dateOf(first, year, month);
-          const col = visualColumn(first);
-          const monday = new Date(
-            year,
-            month,
-            firstDate.getDate() + ((1 - weekStartsOn + 7) % 7) - col,
-          );
-          const expected = numbering.format(oracleIsoWeek(monday));
-          const actual = stripBidi(chips[rows.indexOf(tr)]?.textContent ?? '(none)');
-          if (actual !== expected)
-            mismatches.push(`${where}: got "${actual}", expected "${expected}"`);
+        }
+        const actual = chips.map((chip) => stripBidi(chip.textContent ?? ''));
+        if (actual.join() !== expected.join()) {
+          mismatches.push(`${year}-${month + 1}: got [${actual}], expected [${expected}]`);
         }
       }
     }

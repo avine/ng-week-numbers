@@ -1,5 +1,5 @@
-import { InjectionToken, Provider } from '@angular/core';
-import { DcWeekNumberFn, dcIsoWeekNumber } from './week-number-fns';
+import { InjectionToken, type Provider } from '@angular/core';
+import { dcIsoWeekNumber, type DcWeekNumberFn } from './week-number-fns';
 
 /**
  * Computes the week number of a calendar row. Defaults to ISO 8601 (`dcIsoWeekNumber`).

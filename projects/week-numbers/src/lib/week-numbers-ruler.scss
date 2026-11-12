@@ -1,0 +1,92 @@
+.dc-week-numbers-ruler {
+  display: block;
+  // The ruler spans the calendar: its width drives the chip height, like the day cells.
+  container-type: inline-size;
+  padding-inline: 8px;
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-bottom: 7%;
+    padding: 2% 6%;
+
+    border-radius: 0;
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-width: 1px 0;
+  }
+
+  &__caption {
+    flex: none;
+
+    padding-inline: 0.5em;
+
+    color: var(--mat-datepicker-calendar-header-text-color, var(--mat-sys-on-surface-variant));
+    text-transform: uppercase;
+
+    font-size: var(--mat-datepicker-calendar-header-text-size, var(--mat-sys-title-small-size));
+    font-weight: var(
+      --mat-datepicker-calendar-header-text-weight,
+      var(--mat-sys-title-small-weight)
+    );
+  }
+
+  &__chip {
+    flex: 1;
+    position: relative;
+    cursor: pointer;
+
+    min-width: 0;
+    // Follows the day cells: a column of the month grid is (calendar width - 16px content
+    // padding) / 7, the day circle 90% of it. 75% gives 30px in the default 296px popup.
+    height: calc((100cqi - 16px) / 7 * 0.75);
+    margin: 0;
+    padding: 0;
+
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background-color: transparent;
+    color: var(--mat-sys-primary);
+
+    font-family: var(--mat-datepicker-calendar-text-font, var(--mat-sys-body-medium-font));
+    font-size: var(--mat-datepicker-calendar-text-size, var(--mat-sys-body-medium-size));
+
+    &:hover:not(:disabled) {
+      background-color: var(
+        --mat-datepicker-calendar-date-hover-state-background-color,
+        color-mix(
+          in srgb,
+          var(--mat-sys-on-surface) calc(var(--mat-sys-hover-state-layer-opacity) * 100%),
+          transparent
+        )
+      );
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mat-sys-primary);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.38;
+    }
+
+    &--today {
+      border-color: var(--mat-datepicker-calendar-date-today-outline-color, var(--mat-sys-primary));
+    }
+
+    &--selected {
+      border-color: transparent;
+      background-color: var(
+        --mat-datepicker-calendar-date-selected-state-background-color,
+        var(--mat-sys-primary)
+      ) !important;
+      color: var(
+        --mat-datepicker-calendar-date-selected-state-text-color,
+        var(--mat-sys-on-primary)
+      );
+    }
+  }
+}
