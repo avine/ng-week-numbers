@@ -98,18 +98,28 @@ export class DcWeekRuler {
 
   protected readonly isMonthView = computed(() => this.state().view === 'month');
 
+  /**
+   * One chip per row of the displayed month grid. The adapter is not a signal: its locale is
+   * read on every run, and `state` re-runs this computed on `localeChanges`.
+   */
   protected readonly weeks = computed<DcWeekChip[]>(() => {
+    // 1. Inputs: `state` and `intl` are the only reactive dependencies.
     const adapter = this.adapter;
     const { activeDate, selected, minDate, maxDate } = this.state();
     const intl = this.intl();
     if (!adapter) return [];
 
+    // 2. Displayed month: the month of `activeDate` (its day does not matter).
     const year = adapter.getYear(activeDate);
     const month = adapter.getMonth(activeDate);
     const firstOfMonth = adapter.createDate(year, month, 1);
     const numDays = adapter.getNumDaysInMonth(firstOfMonth);
-    // Days of the previous month on the first row.
+
+    // 3. Days of the previous month on the first row (depends on the locale's first day of week).
     const offset = differenceInCalendarDays(firstOfMonth, dcRowStart(firstOfMonth, 0, adapter));
+
+    // 4. Shared by all rows: day labels as written in the cells, selection as a
+    //    [start, end] interval, day of month of today (null when today is in another month).
     const dayNames = adapter.getDateNames();
     const [selectionStart, selectionEnd] = DcWeekRuler.selectionBounds(selected);
     const today = adapter.today();
@@ -118,24 +128,35 @@ export class DcWeekRuler {
         ? adapter.getDate(today)
         : null;
 
+    // 5. One iteration per grid row. `start`/`end`: days of month of the row's first/last cell,
+    //    out of [1, numDays] when the row overlaps the previous/next month.
     const chips: DcWeekChip[] = [];
     for (let row = 0, start = 1 - offset; start <= numDays; row++, start += 7) {
       const end = start + 6;
+
+      // 6. Row bounds within the month (cells of other months are not displayed).
       const firstDay = Math.max(1, start);
       const lastDay = Math.min(numDays, end);
       const target = adapter.createDate(year, month, firstDay);
       const last = adapter.createDate(year, month, lastDay);
+
+      // 7. Week number of the full row: the strategy always receives the row's first cell.
       const week = this.weekNumberFn(dcRowStart(firstOfMonth, row, adapter), adapter);
+
+      // 8. Tooltip: days of the month covered by the row, e.g. `9 – 15`, or `1`.
       const days =
         firstDay === lastDay
           ? dayNames[firstDay - 1]
           : `${dayNames[firstDay - 1]} – ${dayNames[lastDay - 1]}`;
+
+      // 9. Chip.
       chips.push({
         start,
         text: dcFormatWeekNumber(week, adapter),
         days,
         label: intl.weekNumber(week, days),
         target,
+        // Interval overlap: [selectionStart, selectionEnd] ∩ [target, last] ≠ ∅.
         // Days of the row outside the month are not displayed: they do not count.
         selected:
           selectionStart !== null &&
@@ -143,11 +164,14 @@ export class DcWeekRuler {
           adapter.compareDate(selectionStart, last) <= 0 &&
           adapter.compareDate(selectionEnd, target) >= 0,
         today: todayDay !== null && todayDay >= start && todayDay <= end,
+        // Every day of the row in the month is out of [minDate, maxDate].
         disabled:
           (minDate !== null && adapter.compareDate(last, minDate) < 0) ||
           (maxDate !== null && adapter.compareDate(target, maxDate) > 0),
       });
     }
+
+    // 10. Same order as the grid rows; `start` is the `@for` track key.
     return chips;
   });
 
@@ -183,8 +207,7 @@ export class DcWeekRuler {
     if (adapter instanceof DateFnsAdapter) return adapter;
     if (isDevMode()) {
       console.error(
-        '[dcWeekRuler] Week numbers require DateFnsAdapter (provideDateFnsAdapter()). ' +
-          'They are not displayed.',
+        '[dcWeekRuler] Week numbers require DateFnsAdapter (provideDateFnsAdapter()). They are not displayed.',
       );
     }
     return null;
