@@ -1,14 +1,9 @@
-import {
-  ApplicationConfig,
-  provideBrowserGlobalErrorListeners,
-  signal,
-  Signal,
-} from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners, signal } from '@angular/core';
 import { provideDateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { provideRouter } from '@angular/router';
 import { enUS } from 'date-fns/locale';
-import { DC_WEEK_NUMBERS_INTL, DcWeekNumbersIntl } from 'week-numbers';
+import { provideDcWeekNumbersIntl } from 'week-numbers';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -17,13 +12,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideDateFnsAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: enUS },
-    {
-      provide: DC_WEEK_NUMBERS_INTL,
-      useValue: signal({
-        week: 'Week',
+    provideDcWeekNumbersIntl(
+      signal({
         weekNumbers: 'Week numbers',
+        week: 'Week',
         formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
-      }) satisfies Signal<DcWeekNumbersIntl>,
-    },
+      }),
+    ),
   ],
 };

@@ -28,27 +28,3 @@ export const dcIsoWeekNumber: DcWeekNumberFn = (date) => getISOWeek(date);
  */
 export const dcLocaleWeekNumber: DcWeekNumberFn = (date, adapter) =>
   Number(adapter.format(date, 'w'));
-
-/**
- * Default formatter: writes the week number with the same digits as the day cells.
- *
- * `DateFnsAdapter` renders days with `Intl.DateTimeFormat(locale.code)`, which follows the
- * locale's numbering system (Arabic-Indic digits for `ar-EG`, Bengali digits for `bn`…).
- * The digits are collected from those 31 date names: they always contain each digit 0-9 once
- * the suffixes are ignored ("5." in Czech, "5日" in Japanese), and Unicode decimal digits are
- * contiguous code points, so sorting them gives their values. This holds even when the names
- * are not Gregorian day numbers (see the `fa-IR` note in the README).
- * Falls back to Latin digits if exactly ten decimal digits cannot be found.
- */
-export function dcFormatWeekNumber(week: number, adapter: DateFnsAdapter): string {
-  const found =
-    adapter
-      .getDateNames()
-      .join('')
-      .match(/\p{Nd}/gu) ?? [];
-  const digits = [...new Set(found)].sort((a, b) => a.codePointAt(0)! - b.codePointAt(0)!);
-  if (digits.length !== 10) {
-    return String(week);
-  }
-  return String(week).replace(/\d/g, (d) => digits[Number(d)]);
-}

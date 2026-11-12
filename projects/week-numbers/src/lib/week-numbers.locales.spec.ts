@@ -2,7 +2,6 @@ import {
   ApplicationRef,
   Component,
   provideZonelessChangeDetection,
-  signal,
   viewChild,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -11,9 +10,8 @@ import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { format, type Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
-import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-number-fns';
-import { DcWeekNumberHeader } from './week-number-header';
-import { DC_WEEK_NUMBERS_INTL, type DcWeekNumbersIntl } from './week-numbers-intl';
+import { DcWeekNumbersHeader } from './week-numbers-header';
+import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-numbers-strategies';
 
 /**
  * Checks every locale shipped by date-fns against independent oracles:
@@ -114,7 +112,7 @@ describe.each(locales)('strategies — %s', (_, locale) => {
   template: `<mat-calendar [headerComponent]="header" />`,
 })
 class Host {
-  readonly header = DcWeekNumberHeader;
+  readonly header = DcWeekNumbersHeader;
   readonly calendar = viewChild.required(MatCalendar);
 }
 
@@ -143,14 +141,6 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: locale },
-        {
-          provide: DC_WEEK_NUMBERS_INTL,
-          useValue: signal<DcWeekNumbersIntl>({
-            weekNumbers: 'Week numbers',
-            week: 'W',
-            formatWeekLabel: (week, days) => `W${week}, ${days}`,
-          }),
-        },
       ],
     });
     const fixture = TestBed.createComponent(Host);

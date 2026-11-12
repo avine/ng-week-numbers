@@ -1,5 +1,5 @@
 import { InjectionToken, type Provider } from '@angular/core';
-import { dcIsoWeekNumber, type DcWeekNumberFn } from './week-number-fns';
+import { dcIsoWeekNumber, type DcWeekNumberFn } from './week-numbers-strategies';
 
 /**
  * Computes the number of the week that contains a date, which also defines the days of each

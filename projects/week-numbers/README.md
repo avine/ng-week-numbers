@@ -5,7 +5,7 @@
 
 Below the standard Material header, a ruler shows one button per week of the displayed month,
 in chronological order. The week of the selected date is filled (every week of a selected range), the current
-week carries a dot, and clicking a week moves the active date (and the focus) to its first day in
+week is outlined, and clicking a week moves the active date (and the focus) to its first day in
 the month — or to `minDate` when that day is earlier — without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
 the year and multi-year views.
 
@@ -14,17 +14,17 @@ Only the public API of `MatCalendar` is used (`activeDate`, `selected`, `current
 
 Verified against **Angular / Angular Material 22.2** — zoneless, SSR-compatible (no-op on the server).
 
-**Requires `DateFnsAdapter`** (`@angular/material-date-fns-adapter`, `date-fns` v4). With another
+**Requires `DateFnsAdapter`** (`@angular/material-date-fns-adapter`, `date-fns` v3 or v4). With another
 adapter, the week numbers are not displayed and an error is logged in dev mode.
 
-## Installation in the library
+## Installation
 
-Copy the `week-numbers/` folder to the root of the library project (next to the other secondary
-entry points). Its `ng-package.json` declares it as the `ng-week-numbers` entry point.
+```sh
+npm install ng-week-numbers
+```
 
-Peer dependencies of the library: `@angular/core`, `@angular/material`,
-`@angular/material-date-fns-adapter`, `date-fns`. No stylesheet to import: styles ship with the
-component.
+Peer dependencies: `@angular/core`, `@angular/material`, `@angular/material-date-fns-adapter`,
+`date-fns`, `rxjs`. No stylesheet to import: styles ship with the component.
 
 ## Usage
 
@@ -40,23 +40,23 @@ import { DcWeekNumbers } from 'ng-week-numbers';
 <mat-calendar dcWeekNumbers />
 ```
 
-The directive sets `DcWeekNumberHeader` as the calendar header (`calendarHeaderComponent` /
+The directive sets `DcWeekNumbersHeader` as the calendar header (`calendarHeaderComponent` /
 `headerComponent`). The header can also be bound explicitly, without the directive:
 
 ```ts
-readonly weekNumberHeader = DcWeekNumberHeader;
+readonly weekNumbersHeader = DcWeekNumbersHeader;
 ```
 
 ```html
-<mat-datepicker [calendarHeaderComponent]="weekNumberHeader" />
-<mat-calendar [headerComponent]="weekNumberHeader" />
+<mat-datepicker [calendarHeaderComponent]="weekNumbersHeader" />
+<mat-calendar [headerComponent]="weekNumbersHeader" />
 ```
 
 ⚠️ Do not combine `dcWeekNumbers` with `[calendarHeaderComponent]` / `[headerComponent]`: the
 binding wins and the directive has no effect (a `console.warn` reports it in dev mode). For a
 custom header, see [Custom header](#custom-header).
 
-`DcWeekNumberHeader` renders Material's own `<mat-calendar-header>` (period button, previous /
+`DcWeekNumbersHeader` renders Material's own `<mat-calendar-header>` (period button, previous /
 next buttons, `MatDatepickerIntl` labels, `minDate` / `maxDate` handling) followed by the week
 ruler. In a popup, Material lets the panel grow with a custom header, so the extra row fits.
 
@@ -93,28 +93,27 @@ Gregorian calendar in the locale code.
 
 ## Customization
 
-### Labels (i18n, required)
+### Labels (i18n)
 
-The library ships no labels: provide them as a `Signal<DcWeekNumbersIntl>` through
-`DC_WEEK_NUMBERS_INTL`. Without it, a missing provider error (`NG0201`) is thrown when the
-calendar is rendered: immediately for `mat-calendar`, when the popup opens for a datepicker.
-The labels of the Material header itself come from `MatDatepickerIntl`, as usual.
+Labels default to English (`DC_WEEK_NUMBERS_INTL_EN`: "Week numbers", "Wk", "Week 46, 9 – 15").
+To translate them, provide a `Signal<DcWeekNumbersIntl>` with `provideDcWeekNumbersIntl()`, for
+the whole application or in the `providers` of a component. The labels of the Material header
+itself come from `MatDatepickerIntl`, as usual.
 
 ```ts
 import { signal } from '@angular/core';
-import { DC_WEEK_NUMBERS_INTL, type DcWeekNumbersIntl } from 'ng-week-numbers';
+import { provideDcWeekNumbersIntl } from 'ng-week-numbers';
 
 providers: [
-  {
-    provide: DC_WEEK_NUMBERS_INTL,
-    useValue: signal<DcWeekNumbersIntl>({
-      weekNumbers: 'Week numbers', // name of the group of buttons, read by screen readers
-      week: 'Wk', // visible caption in front of the week numbers (keep it short)
-      // label of each week button, read by screen readers: "Week 46, 9 – 15"
+  provideDcWeekNumbersIntl(
+    signal({
+      weekNumbers: 'Numéros de semaine', // name of the group of buttons, read by screen readers
+      week: 'Sem.', // visible caption in front of the week numbers (keep it short)
+      // label of each week button, read by screen readers: "Semaine 46, 9 – 15"
       // `days`: days of the displayed month in the week, also shown as tooltip
-      formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
+      formatWeekLabel: (week, days) => `Semaine ${week}, ${days}`,
     }),
-  },
+  ),
 ];
 ```
 

@@ -7,20 +7,23 @@ import { DcWeekNumbersRuler } from './week-numbers-ruler';
  * next buttons, labels from `MatDatepickerIntl`), then the week ruler (`DcWeekNumbersRuler`).
  *
  * Usually applied through the `dcWeekNumbers` directive (`<mat-datepicker dcWeekNumbers />`),
- * or bound explicitly:
+ * or bound explicitly through a field of the component (templates cannot reference a class):
+ *
+ * ```ts
+ * readonly weekNumbersHeader = DcWeekNumbersHeader;
+ * ```
  *
  * ```html
- * <mat-datepicker [calendarHeaderComponent]="DcWeekNumberHeader" />
- * <mat-date-range-picker [calendarHeaderComponent]="DcWeekNumberHeader" />
- * <mat-calendar [headerComponent]="DcWeekNumberHeader" />
+ * <mat-datepicker [calendarHeaderComponent]="weekNumbersHeader" />
+ * <mat-date-range-picker [calendarHeaderComponent]="weekNumbersHeader" />
+ * <mat-calendar [headerComponent]="weekNumbersHeader" />
  * ```
  *
  * To add week numbers to a custom header, embed `<dc-week-numbers-ruler />` in it instead.
  */
 @Component({
-  selector: 'dc-week-number-header',
-  host: { class: 'dc-week-number-header' },
+  selector: 'dc-week-numbers-header',
   imports: [MatCalendarHeader, DcWeekNumbersRuler],
   template: `<mat-calendar-header /><dc-week-numbers-ruler />`,
 })
-export class DcWeekNumberHeader {}
+export class DcWeekNumbersHeader {}

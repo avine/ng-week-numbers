@@ -2,11 +2,11 @@
   "name": "ng-week-numbers",
   "version": "0.0.1",
   "peerDependencies": {
-    "@angular/common": "^22.2.0",
     "@angular/core": "^22.2.0",
     "@angular/material": "^22.2.0",
     "@angular/material-date-fns-adapter": "^22.2.0",
-    "date-fns": "^3.0.0 || ^4.0.0"
+    "date-fns": "^3.0.0 || ^4.0.0",
+    "rxjs": "^6.5.3 || ^7.4.0"
   },
   "dependencies": {
     "tslib": "^2.3.0"

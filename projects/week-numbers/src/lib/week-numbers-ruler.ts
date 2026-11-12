@@ -12,8 +12,8 @@ import { DateAdapter } from '@angular/material/core';
 import { DateRange, MatCalendar, type MatCalendarView } from '@angular/material/datepicker';
 import { MatTooltip } from '@angular/material/tooltip';
 import { map, merge } from 'rxjs';
-import { dcFormatWeekNumber } from './week-number-fns';
 import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
+import { formatWeekNumber, localeDigits } from './week-numbers-digits';
 import { DC_WEEK_NUMBERS_INTL } from './week-numbers-intl';
 
 /** One button per week of the displayed month, in chronological order. */
@@ -49,18 +49,18 @@ interface CalendarState {
  * chronological order. A week is a row of the grid when the numbering and the locale start the
  * week on the same day; otherwise (ISO weeks with Sunday-first rows) it spans two rows.
  * The button of the selected date's week is filled (every week of a selected range), the current
- * week carries a dot. Like in the grid, no button is filled in the other months. Clicking a
+ * week is outlined, like today in the grid. Like in the grid, no button is filled in the other months. Clicking a
  * week moves the active date (and the focus) to its first day in the month — or to `minDate`
  * when that day is earlier — without selecting it.
  * Hidden in the year and multi-year views.
  *
  * Meant to be rendered in a calendar header, i.e. inside `mat-calendar`: it only uses the
  * public API of `MatCalendar` (`activeDate`, `currentView`, `minDate`, `maxDate`,
- * `stateChanges`, `focusActiveCell()`), never its DOM. `DcWeekNumberHeader` combines it with
+ * `stateChanges`, `focusActiveCell()`), never its DOM. `DcWeekNumbersHeader` combines it with
  * the standard Material header; a custom header can embed `<dc-week-numbers-ruler />` the same way.
  *
- * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it, and the labels
- * (`DC_WEEK_NUMBERS_INTL`).
+ * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it. Labels come from
+ * `DC_WEEK_NUMBERS_INTL` (English by default).
  */
 @Component({
   selector: 'dc-week-numbers-ruler',
@@ -115,9 +115,10 @@ export class DcWeekNumbersRuler {
     const month = adapter.getMonth(activeDate);
     const numDays = adapter.getNumDaysInMonth(adapter.createDate(year, month, 1));
 
-    // 3. Shared by all weeks: day labels as written in the cells, selection as a
+    // 3. Shared by all weeks: day labels and digits as written in the cells, selection as a
     //    [start, end] interval, day of month of today (null when today is in another month).
     const dayNames = adapter.getDateNames();
+    const digits = localeDigits(dayNames);
     const [selectionStart, selectionEnd] = DcWeekNumbersRuler.selectionBounds(selected);
     const today = adapter.today();
     const todayDay =
@@ -149,7 +150,7 @@ export class DcWeekNumbersRuler {
       // 7. Chip.
       weekChips.push({
         firstDay,
-        text: dcFormatWeekNumber(week, adapter),
+        text: formatWeekNumber(week, digits),
         days,
         label: intl.formatWeekLabel(week, days),
         target,
