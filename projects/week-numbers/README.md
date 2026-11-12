@@ -1,4 +1,4 @@
-# `@jcdfr/ng-deco/week-numbers`
+# `ng-week-numbers`
 
 **Week number** column (ISO 8601 by default) on the left of the Angular Material calendar:
 `mat-datepicker`, `mat-date-range-picker` and inline `mat-calendar`.
@@ -11,7 +11,7 @@ adapter, the column is not displayed and an error is logged in dev mode.
 ## Installation in the library
 
 Copy the `week-numbers/` folder to the root of the library project (next to the other secondary
-entry points). Its `ng-package.json` declares it as the `@jcdfr/ng-deco/week-numbers` entry point.
+entry points). Its `ng-package.json` declares it as the `ng-week-numbers` entry point.
 
 Peer dependencies of the library: `@angular/core`, `@angular/material`,
 `@angular/material-date-fns-adapter`, `date-fns`. No stylesheet to import: styles ship with the
@@ -20,7 +20,7 @@ component (`ViewEncapsulation.None`).
 ## Usage
 
 ```ts
-import { DcWeekNumbers } from '@jcdfr/ng-deco/week-numbers';
+import { DcWeekNumbers } from 'ng-week-numbers';
 
 @Component({ imports: [MatDatepickerModule, DcWeekNumbers], … })
 ```
@@ -68,7 +68,7 @@ calendar is rendered: immediately for `mat-calendar`, when the popup opens for a
 
 ```ts
 import { signal } from '@angular/core';
-import { DC_WEEK_NUMBER_INTL, type DcWeekNumbersIntl } from '@jcdfr/ng-deco/week-numbers';
+import { DC_WEEK_NUMBER_INTL, type DcWeekNumbersIntl } from 'ng-week-numbers';
 
 providers: [
   {
@@ -88,7 +88,7 @@ automatically. Mutating the current object is not detected.
 ### Numbering
 
 ```ts
-import { dcLocaleWeekNumber, provideDcWeekNumberFn } from '@jcdfr/ng-deco/week-numbers';
+import { dcLocaleWeekNumber, provideDcWeekNumberFn } from 'ng-week-numbers';
 
 providers: [
   // Locale numbering (weekStartsOn + firstWeekContainsDate), e.g. US numbering for enUS
@@ -131,11 +131,7 @@ French ones) should the numbering follow the build. Provide `DC_WEEK_NUMBER_FN` 
 
 ```ts
 import { inject, LOCALE_ID } from '@angular/core';
-import {
-  DC_WEEK_NUMBER_FN,
-  dcIsoWeekNumber,
-  dcLocaleWeekNumber,
-} from '@jcdfr/ng-deco/week-numbers';
+import { DC_WEEK_NUMBER_FN, dcIsoWeekNumber, dcLocaleWeekNumber } from 'ng-week-numbers';
 
 providers: [
   {

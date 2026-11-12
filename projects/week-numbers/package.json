@@ -1,5 +1,5 @@
 {
-  "name": "week-numbers",
+  "name": "ng-week-numbers",
   "version": "0.0.1",
   "peerDependencies": {
     "@angular/common": "^22.2.0",
