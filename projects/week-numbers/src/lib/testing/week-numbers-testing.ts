@@ -29,7 +29,7 @@ import { DcWeekNumbersRuler } from '../week-numbers-ruler';
 export const FR_LABELS: DcWeekNumbersIntl = {
   weekNumbers: 'Numéros de semaine',
   week: 'Sem.',
-  formatWeekLabel: (week, days) => `Semaine ${week}, ${days}`,
+  formatWeekLabel: (week, dayRange) => `Semaine ${week}, ${dayRange}`,
 };
 
 /** ISO weeks of November 2026 (Sunday 1st → Monday 30th). */

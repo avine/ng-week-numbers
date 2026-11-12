@@ -317,6 +317,8 @@ describe('DcWeekNumbersRuler — enUS + ISO (default)', () => {
     const { fixture, root } = setup();
     await flush(fixture);
     expect(root.querySelector('thead th')!.textContent).toContain('Sunday');
+    // 5 rows (Sunday 1st → Monday 30th), but 6 ISO weeks.
+    expect(root.querySelectorAll('tbody [data-mat-row][data-mat-col="0"]')).toHaveLength(5);
     expect(weekNumbers(root)).toEqual(NOVEMBER_2026);
     expect(tooltips(fixture)).toEqual(['1', '2 – 8', '9 – 15', '16 – 22', '23 – 29', '30']);
     expect(todayWeeks(root)).toEqual(['46']);

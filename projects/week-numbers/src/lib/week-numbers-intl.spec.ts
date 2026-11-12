@@ -43,7 +43,7 @@ describe('DC_WEEK_NUMBERS_INTL / provideDcWeekNumbersIntl', () => {
     intl.set({
       weekNumbers: 'Week numbers',
       week: 'Wk',
-      formatWeekLabel: (week, days) => `Week ${week} (${days})`,
+      formatWeekLabel: (week, dayRange) => `Week ${week} (${dayRange})`,
     });
     await flush(fixture);
     expect(caption(root)).toBe('Wk');

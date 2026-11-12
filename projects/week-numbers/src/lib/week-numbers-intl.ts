@@ -7,17 +7,17 @@ export interface DcWeekNumbersIntl {
   week: string;
   /**
    * Accessible label of each week button, read by screen readers, e.g. "Week 46, 9 – 15".
-   * `days` is the range of days of the displayed month in the week ("9 – 15", or "1" when the
+   * `dayRange` is the range of days of the displayed month in the week ("9 – 15", or "1" when the
    * week has a single day in the month), written like the day cells; it is also the tooltip.
    */
-  formatWeekLabel: (week: number, days: string) => string;
+  formatWeekLabel: (week: number, dayRange: string) => string;
 }
 
 /** English labels, used when the application provides none. */
 export const DC_WEEK_NUMBERS_INTL_EN: DcWeekNumbersIntl = {
   weekNumbers: 'Week numbers',
   week: 'Wk',
-  formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
+  formatWeekLabel: (week, dayRange) => `Week ${week}, ${dayRange}`,
 };
 
 /**

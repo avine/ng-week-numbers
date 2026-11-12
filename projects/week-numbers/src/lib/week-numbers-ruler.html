@@ -2,20 +2,20 @@
   <div class="dc-week-numbers-ruler__group" role="group" [aria-label]="intl().weekNumbers">
     <span class="dc-week-numbers-ruler__caption" aria-hidden="true">{{ intl().week }}</span>
 
-    @for (chip of weekChips(); track chip.firstDay) {
+    @for (chip of weekChips(); track $index) {
       <button
         type="button"
         class="dc-week-numbers-ruler__chip"
         [class.dc-week-numbers-ruler__chip--today]="chip.today"
         [class.dc-week-numbers-ruler__chip--selected]="chip.selected"
-        [aria-label]="chip.label"
+        [aria-label]="chip.ariaLabel"
         [aria-current]="chip.selected ? 'true' : null"
-        [matTooltip]="chip.days"
+        [matTooltip]="chip.dayRange"
         [matTooltipShowDelay]="500"
         [disabled]="chip.disabled"
         (click)="activate(chip)"
       >
-        {{ chip.text }}
+        {{ chip.weekNumber }}
       </button>
     }
   </div>

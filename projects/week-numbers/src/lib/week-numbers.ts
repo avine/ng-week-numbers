@@ -12,9 +12,13 @@ import { DcWeekNumbersHeader } from './week-numbers-header';
  * <mat-calendar dcWeekNumbers />
  * ```
  *
+ * Entry point of the library. The week numbers themselves are rendered by `DcWeekNumbersRuler`.
+ *
  * Sets `DcWeekNumbersHeader` as the calendar header (`calendarHeaderComponent` /
  * `headerComponent`, public Material inputs). A custom header does not need this directive:
- * embed `<dc-week-numbers-ruler />` in it and bind it to `[calendarHeaderComponent]` as usual.
+ * embed `<dc-week-numbers-ruler />` in the custom header component, and bind that component to
+ * `[calendarHeaderComponent]` as usual. The custom header replaces the whole Material header: to
+ * keep the standard navigation, include `<mat-calendar-header />` in it as well.
  */
 @Directive({
   selector:
@@ -53,7 +57,7 @@ export class DcWeekNumbers {
     }
   }
 
-  private getHeaderComponent(): unknown {
+  private getHeaderComponent() {
     return this.picker ? this.picker.calendarHeaderComponent : this.calendar?.headerComponent;
   }
 }

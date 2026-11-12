@@ -3,11 +3,22 @@
 **Week numbers** (ISO 8601 by default) in the header of the Angular Material calendar:
 `mat-datepicker`, `mat-date-range-picker` and inline `mat-calendar`.
 
-Below the standard Material header, a ruler shows one button per week of the displayed month,
-in chronological order. The week of the selected date is filled (every week of a selected range), the current
-week is outlined, and clicking a week moves the active date (and the focus) to its first day in
-the month — or to `minDate` when that day is earlier — without selecting it. As in the grid, nothing is filled in the other months. The ruler is hidden in
-the year and multi-year views.
+Below the standard Material header, a ruler (`DcWeekNumbersRuler`) shows the week numbers of
+the displayed month, one button per week, in chronological order. Only the days of the
+displayed month count: a week is shown if one of its days is in the month, and its state
+depends on those days only.
+
+- **Weeks, not rows.** When the numbering and the grid start weeks on the same day (ISO weeks,
+  Monday-first rows), each button matches a row. Otherwise a week spans two rows, and there can
+  be more buttons than rows: with ISO weeks and `enUS` (Sunday-first rows), November 2026 has
+  5 rows but 6 weeks (44 → 49).
+- **Selection and today, as in the grid.** A week is filled when one of its days in the month is
+  selected (with a range, every week it covers), and outlined when it contains today. A week
+  whose selected day falls in the previous or next month is not filled, since the grid does not
+  show that day.
+- **Click navigates, does not select.** It moves the active date and the focus to the first day
+  of the week in the displayed month, or to `minDate` when that day is earlier.
+- **Month view only.** Hidden in the year and multi-year views.
 
 Only the public API of `MatCalendar` is used (`activeDate`, `selected`, `currentView`, `minDate`, `maxDate`,
 `stateChanges`, `focusActiveCell()`): the calendar grid and its DOM are left untouched.
@@ -16,6 +27,19 @@ Verified against **Angular / Angular Material 22.2** — zoneless, SSR-compatibl
 
 **Requires `DateFnsAdapter`** (`@angular/material-date-fns-adapter`, `date-fns` v3 or v4). With another
 adapter, the week numbers are not displayed and an error is logged in dev mode.
+
+## How it fits together
+
+Three layers, from the simplest to use to the one that does the work:
+
+| Layer                 | What it is                                                     | Use it when                       |
+| --------------------- | -------------------------------------------------------------- | --------------------------------- |
+| `dcWeekNumbers`       | Directive: sets `DcWeekNumbersHeader` as the calendar header   | Default: one attribute            |
+| `DcWeekNumbersHeader` | Header: `<mat-calendar-header />` + `<dc-week-numbers-ruler />` | Binding the header explicitly     |
+| `DcWeekNumbersRuler`  | **The week ruler itself: all the behavior lives here**         | Building a [custom header](#custom-header) |
+
+Start with the directive; read `DcWeekNumbersRuler` to understand how the week numbers are
+computed and rendered. The directive and the header only place the ruler in the calendar header.
 
 ## Installation
 
@@ -110,8 +134,8 @@ providers: [
       weekNumbers: 'Numéros de semaine', // name of the group of buttons, read by screen readers
       week: 'Sem.', // visible caption in front of the week numbers (keep it short)
       // label of each week button, read by screen readers: "Semaine 46, 9 – 15"
-      // `days`: days of the displayed month in the week, also shown as tooltip
-      formatWeekLabel: (week, days) => `Semaine ${week}, ${days}`,
+      // `dayRange`: days of the displayed month in the week, also shown as tooltip
+      formatWeekLabel: (week, dayRange) => `Semaine ${week}, ${dayRange}`,
     }),
   ),
 ];
@@ -201,8 +225,14 @@ Material creates the header inside `mat-calendar`, which is all the ruler needs.
 export class MyHeader { … }
 ```
 
+Templates cannot reference a class: expose the header through a field of the component.
+
+```ts
+readonly myHeader = MyHeader;
+```
+
 ```html
-<mat-datepicker [calendarHeaderComponent]="MyHeader" />
+<mat-datepicker [calendarHeaderComponent]="myHeader" />
 ```
 
 No `dcWeekNumbers` here: the custom header already contains the week ruler.
@@ -211,7 +241,7 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 - The ruler is a `role="group"` named by `weekNumbers`; the visible caption (`week`) is hidden
   from screen readers.
-- Each week is a native `<button>` labelled by `formatWeekLabel(week, days)` (e.g. "Week 46, 9 – 15");
+- Each week is a native `<button>` labelled by `formatWeekLabel(week, dayRange)` (e.g. "Week 46, 9 – 15");
   the week of the selected date carries `aria-current="true"`.
 - Clicking a week moves the focus to its first day in the grid, or to `minDate` when that day is
   earlier (`MatCalendar#focusActiveCell()`):
