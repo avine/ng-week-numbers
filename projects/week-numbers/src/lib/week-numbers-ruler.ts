@@ -151,7 +151,7 @@ export class DcWeekNumbersRuler {
         firstDay,
         text: dcFormatWeekNumber(week, adapter),
         days,
-        label: `${intl.week} ${week}, ${days}`,
+        label: intl.formatWeekLabel(week, days),
         target,
         // Interval overlap: [selectionStart, selectionEnd] ∩ [target, last] ≠ ∅.
         selected:

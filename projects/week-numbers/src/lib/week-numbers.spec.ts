@@ -32,6 +32,7 @@ import { DcWeekNumbersRuler } from './week-numbers-ruler';
 const LABELS: DcWeekNumbersIntl = {
   weekNumbers: 'Numéros de semaine',
   week: 'Sem.',
+  formatWeekLabel: (week, days) => `Semaine ${week}, ${days}`,
 };
 const provideLabels = () => ({ provide: DC_WEEK_NUMBERS_INTL, useFactory: () => signal(LABELS) });
 
@@ -245,8 +246,8 @@ describe('DcWeekNumberHeader', () => {
     fixture.componentInstance.selected = new Date(2026, 10, 5);
     await flush(fixture);
     expect(tooltips(fixture)).toEqual(['1', '2 – 8', '9 – 15', '16 – 22', '23 – 29', '30']);
-    expect(chips(root)[2].getAttribute('aria-label')).toBe('Sem. 46, 9 – 15');
-    expect(chips(root)[0].getAttribute('aria-label')).toBe('Sem. 44, 1');
+    expect(chips(root)[2].getAttribute('aria-label')).toBe('Semaine 46, 9 – 15');
+    expect(chips(root)[0].getAttribute('aria-label')).toBe('Semaine 44, 1');
     expect(chips(root).map((chip) => chip.getAttribute('aria-current'))).toEqual([
       null,
       'true',
@@ -411,14 +412,15 @@ describe('DcWeekNumberHeader', () => {
     await flush(fixture);
     intl.set({
       weekNumbers: 'Week numbers',
-      week: 'Week',
+      week: 'Wk',
+      formatWeekLabel: (week, days) => `Week ${week} (${days})`,
     });
     await flush(fixture);
-    expect(root.querySelector('.dc-week-numbers-ruler__caption')!.textContent).toBe('Week');
+    expect(root.querySelector('.dc-week-numbers-ruler__caption')!.textContent).toBe('Wk');
     expect(root.querySelector('.dc-week-numbers-ruler__group')!.getAttribute('aria-label')).toBe(
       'Week numbers',
     );
-    expect(chips(root)[1].getAttribute('aria-label')).toBe('Week 45, 2 – 8');
+    expect(chips(root)[1].getAttribute('aria-label')).toBe('Week 45 (2 – 8)');
   });
 
   it('throws when DC_WEEK_NUMBERS_INTL is not provided', () => {
@@ -552,12 +554,12 @@ describe('DcWeekNumberHeader — enUS + ISO (default)', () => {
     expect(root.querySelector('thead th')!.textContent).toContain('Sunday');
     expect(weekNumbers(root)).toEqual(NOVEMBER_2026);
     expect(chips(root).map((chip) => chip.getAttribute('aria-label'))).toEqual([
-      'Sem. 44, 1',
-      'Sem. 45, 2 – 8',
-      'Sem. 46, 9 – 15',
-      'Sem. 47, 16 – 22',
-      'Sem. 48, 23 – 29',
-      'Sem. 49, 30',
+      'Semaine 44, 1',
+      'Semaine 45, 2 – 8',
+      'Semaine 46, 9 – 15',
+      'Semaine 47, 16 – 22',
+      'Semaine 48, 23 – 29',
+      'Semaine 49, 30',
     ]);
     const today = chips(root).filter((chip) =>
       chip.classList.contains('dc-week-numbers-ruler__chip--today'),

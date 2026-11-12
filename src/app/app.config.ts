@@ -22,6 +22,7 @@ export const appConfig: ApplicationConfig = {
       useValue: signal({
         week: 'Week',
         weekNumbers: 'Week numbers',
+        formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
       }) satisfies Signal<DcWeekNumbersIntl>,
     },
   ],

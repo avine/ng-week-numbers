@@ -96,23 +96,23 @@ Gregorian calendar in the locale code.
 ### Labels (i18n, required)
 
 The library ships no labels: provide them as a `Signal<DcWeekNumbersIntl>` through
-`DC_WEEK_NUMBER_INTL`. Without it, a missing provider error (`NG0201`) is thrown when the
+`DC_WEEK_NUMBERS_INTL`. Without it, a missing provider error (`NG0201`) is thrown when the
 calendar is rendered: immediately for `mat-calendar`, when the popup opens for a datepicker.
 The labels of the Material header itself come from `MatDatepickerIntl`, as usual.
 
 ```ts
 import { signal } from '@angular/core';
-import { DC_WEEK_NUMBER_INTL, type DcWeekNumbersIntl } from 'ng-week-numbers';
+import { DC_WEEK_NUMBERS_INTL, type DcWeekNumbersIntl } from 'ng-week-numbers';
 
 providers: [
   {
-    provide: DC_WEEK_NUMBER_INTL,
+    provide: DC_WEEK_NUMBERS_INTL,
     useValue: signal<DcWeekNumbersIntl>({
-      shortWeek: 'Wk', // visible caption in front of the week numbers (keep it short)
-      week: 'Week numbers', // name of the group of buttons, read by screen readers
+      weekNumbers: 'Week numbers', // name of the group of buttons, read by screen readers
+      week: 'Wk', // visible caption in front of the week numbers (keep it short)
       // label of each week button, read by screen readers: "Week 46, 9 – 15"
       // `days`: days of the displayed month in the week, also shown as tooltip
-      weekNumber: (n, days) => `Week ${n}, ${days}`,
+      formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
     }),
   },
 ];
@@ -186,17 +186,17 @@ theme.
 
 ### Custom header
 
-`DcWeekRuler` (`<dc-week-ruler />`) is the week ruler alone. Embed it in any calendar header:
+`DcWeekNumbersRuler` (`<dc-week-numbers-ruler />`) is the week ruler alone. Embed it in any calendar header:
 Material creates the header inside `mat-calendar`, which is all the ruler needs.
 
 ```ts
 @Component({
-  imports: [MatCalendarHeader, DcWeekRuler],
+  imports: [MatCalendarHeader, DcWeekNumbersRuler],
   template: `
     <mat-calendar-header>
       <button matButton (click)="today()">Today</button>
     </mat-calendar-header>
-    <dc-week-ruler />
+    <dc-week-numbers-ruler />
   `,
 })
 export class MyHeader { … }
@@ -210,14 +210,15 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 ## Accessibility
 
-- The ruler is a `role="group"` named by `week`; the visible caption is hidden from screen readers.
-- Each week is a native `<button>` labelled by `weekNumber(n, days)` (e.g. "Week 46, 9 – 15");
+- The ruler is a `role="group"` named by `weekNumbers`; the visible caption (`week`) is hidden
+  from screen readers.
+- Each week is a native `<button>` labelled by `formatWeekLabel(week, days)` (e.g. "Week 46, 9 – 15");
   the week of the selected date carries `aria-current="true"`.
 - Clicking a week moves the focus to its first day in the grid, or to `minDate` when that day is
   earlier (`MatCalendar#focusActiveCell()`):
   keyboard users continue with the arrow keys, Enter selects. It does not select the date.
-- Rows entirely outside `minDate` / `maxDate` are disabled.
-- Visible focus ring (`:focus-visible`), `forced-colors` support for the selected week.
+- Weeks entirely outside `minDate` / `maxDate` are disabled.
+- Visible focus ring (`:focus-visible`).
 - Material keyboard navigation in the grid is unaffected; the ruler follows it.
 
 ## Compatibility

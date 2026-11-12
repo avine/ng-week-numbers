@@ -13,7 +13,7 @@ import { format, type Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
 import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-number-fns';
 import { DcWeekNumberHeader } from './week-number-header';
-import { DC_WEEK_NUMBERS_INTL } from './week-numbers-intl';
+import { DC_WEEK_NUMBERS_INTL, type DcWeekNumbersIntl } from './week-numbers-intl';
 
 /**
  * Checks every locale shipped by date-fns against independent oracles:
@@ -145,7 +145,11 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
         { provide: MAT_DATE_LOCALE, useValue: locale },
         {
           provide: DC_WEEK_NUMBERS_INTL,
-          useValue: signal({ shortWeek: 'W', week: 'Week', weekNumber: (n: number) => `W${n}` }),
+          useValue: signal<DcWeekNumbersIntl>({
+            weekNumbers: 'Week numbers',
+            week: 'W',
+            formatWeekLabel: (week, days) => `W${week}, ${days}`,
+          }),
         },
       ],
     });
