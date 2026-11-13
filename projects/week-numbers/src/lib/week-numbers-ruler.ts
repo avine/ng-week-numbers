@@ -15,6 +15,7 @@ import { map, merge } from 'rxjs';
 import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
 import { formatWeekNumber, localeDigits } from './week-numbers-digits';
 import { DC_WEEK_NUMBERS_INTL } from './week-numbers-intl';
+import { DcRovingFocus, DcRovingFocusItem } from './week-numbers-roving-focus';
 
 /** One button per week of the displayed month, in chronological order. */
 interface WeekChip {
@@ -65,6 +66,9 @@ interface CalendarState {
  *   enabled: out of `minDate` / `maxDate`, or rejected by `dateFilter`.
  * - **Click navigates, does not select.** It moves the active date and the focus to the first
  *   enabled day of the week in the displayed month.
+ * - **Keyboard: one tab stop** (WAI-ARIA toolbar). Tab reaches a single week: the selected one,
+ *   else the current one, else the first enabled one. The arrow keys move between the enabled
+ *   weeks (no wrapping, reversed in right-to-left layouts), Home / End go to the first / last.
  * - **Month view only.** Hidden in the year and multi-year views.
  *
  * Meant to be rendered in a calendar header, i.e. inside `mat-calendar`: it only uses the
@@ -78,7 +82,7 @@ interface CalendarState {
 @Component({
   selector: 'dc-week-numbers-ruler',
   host: { class: 'dc-week-numbers-ruler' },
-  imports: [MatTooltip],
+  imports: [MatTooltip, DcRovingFocus, DcRovingFocusItem],
   templateUrl: './week-numbers-ruler.html',
   styleUrl: './week-numbers-ruler.scss',
   encapsulation: ViewEncapsulation.None,
@@ -208,6 +212,9 @@ export class DcWeekNumbersRuler {
     return weekChips;
   });
 
+  /** The chip that Tab reaches by default, see `pickDefaultTabStop()` (keyboard: `dcRovingFocus`). */
+  protected readonly defaultTabStop = computed(() => pickDefaultTabStop(this.weekChips()));
+
   protected activate(chip: WeekChip): void {
     // Disabled chips cannot be clicked: this guard only narrows the type.
     if (chip.firstEnabledDate === null) return;
@@ -222,6 +229,19 @@ export class DcWeekNumbersRuler {
     clearTimeout(this.focusTimeout);
     this.focusTimeout = setTimeout(() => this.calendar.focusActiveCell(), 1);
   }
+}
+
+/**
+ * Default tab stop, like the active day of the grid: the first selected week, else the current
+ * week, else the first enabled week; `-1` (no tab stop) when every week is disabled.
+ */
+function pickDefaultTabStop(chips: readonly WeekChip[]): number {
+  const enabled = chips.map((chip) => chip.firstEnabledDate !== null);
+  const selected = chips.findIndex((chip, i) => enabled[i] && chip.selected);
+  if (selected >= 0) return selected;
+  const today = chips.findIndex((chip, i) => enabled[i] && chip.today);
+  if (today >= 0) return today;
+  return enabled.indexOf(true);
 }
 
 /** First and last selected days; an incomplete range counts as its single date. */

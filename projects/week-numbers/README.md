@@ -49,8 +49,8 @@ computed and rendered. The directive and the header only place the ruler in the 
 npm install ng-week-numbers
 ```
 
-Peer dependencies: `@angular/core`, `@angular/material`, `@angular/material-date-fns-adapter`,
-`date-fns`, `rxjs`. No stylesheet to import: styles ship with the component.
+Peer dependencies: `@angular/core`, `@angular/cdk`, `@angular/material`,
+`@angular/material-date-fns-adapter`, `date-fns`, `rxjs`. No stylesheet to import: styles ship with the component.
 
 ## Usage
 
@@ -272,8 +272,12 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 ## Accessibility
 
-- The ruler is a `role="group"` named by `weekNumbers`; the visible caption (`week`) is hidden
+- The ruler is a `role="toolbar"` named by `weekNumbers`; the visible caption (`week`) is hidden
   from screen readers.
+- One tab stop for the whole ruler, like the grid: Tab reaches the selected week, else the
+  current week, else the first enabled week. The arrow keys move between the enabled weeks (no
+  wrapping, reversed in right-to-left layouts), Home / End go to the first / last one
+  (`FocusKeyManager` from `@angular/cdk/a11y`).
 - Each week is a native `<button>` labelled by `formatWeekLabel(week, dayRange)` (e.g. "Week 46, 9 – 15");
   like the day cells of the grid, the current week carries `aria-current="date"` and the weeks of
   the selection `aria-pressed="true"` (both can be combined).

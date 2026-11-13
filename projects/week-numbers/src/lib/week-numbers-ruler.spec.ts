@@ -1,8 +1,10 @@
+import { Directionality } from '@angular/cdk/bidi';
 import { Component, provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DateAdapter, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { DateRange, MatCalendar } from '@angular/material/datepicker';
 import { enUS } from 'date-fns/locale';
+import { of } from 'rxjs';
 import {
   CalendarHost,
   chips,
@@ -35,6 +37,7 @@ function pressKey(target: Element, keyCode: number): void {
 }
 
 const DOWN_ARROW = 40;
+const [END, HOME, LEFT_ARROW, RIGHT_ARROW] = [35, 36, 37, 39];
 
 const nextMonth = (root: ParentNode) =>
   root.querySelector<HTMLButtonElement>('.mat-calendar-next-button')!.click();
@@ -130,7 +133,7 @@ describe('DcWeekNumbersRuler', () => {
       'false',
     ]);
     const group = root.querySelector('.dc-week-numbers-ruler__group')!;
-    expect(group.getAttribute('role')).toBe('group');
+    expect(group.getAttribute('role')).toBe('toolbar');
     expect(group.getAttribute('aria-label')).toBe('Numéros de semaine');
     expect(
       group.querySelector('.dc-week-numbers-ruler__caption')!.getAttribute('aria-hidden'),
@@ -321,6 +324,107 @@ describe('DcWeekNumbersRuler', () => {
     expect(sameDay(fixture.componentInstance.calendar().activeDate, new Date(2026, 10, 11))).toBe(
       true,
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Keyboard: one tab stop (WAI-ARIA toolbar, CDK FocusKeyManager)
+// ---------------------------------------------------------------------------
+
+describe('DcWeekNumbersRuler — keyboard', () => {
+  const setup = () => setupCalendar(CalendarHost);
+  /** Indexes of the chips with `tabindex="0"`: exactly one tab stop expected. */
+  const tabStops = (root: ParentNode) =>
+    chips(root).flatMap((chip, i) => (chip.tabIndex === 0 ? [i] : []));
+
+  /** Presses `keyCode` on the focused chip, then lets Angular render. */
+  const press = async (fixture: Parameters<typeof flush>[0], keyCode: number) => {
+    pressKey(document.activeElement!, keyCode);
+    await flush(fixture);
+  };
+
+  it('one tab stop: the selected week', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.selected = new Date(2026, 10, 5); // week 45
+    await flush(fixture);
+    expect(tabStops(root)).toEqual([1]);
+  });
+
+  it('one tab stop: the current week, without selection in the month', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    expect(tabStops(root)).toEqual([2]); // week 46, today
+  });
+
+  it('one tab stop: the first enabled week, without selection or today', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.minDate.set(new Date(2026, 10, 17)); // weeks 44 → 46 disabled
+    await flush(fixture);
+    expect(tabStops(root)).toEqual([3]);
+
+    nextMonth(root); // December: today is not displayed
+    await flush(fixture);
+    expect(tabStops(root)).toEqual([0]);
+  });
+
+  it('arrow keys, Home and End move the focus, and the tab stop follows', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    chips(root)[2].focus();
+
+    await press(fixture, RIGHT_ARROW);
+    expect(document.activeElement).toBe(chips(root)[3]);
+    expect(tabStops(root)).toEqual([3]);
+
+    await press(fixture, END);
+    expect(document.activeElement).toBe(chips(root)[5]);
+
+    await press(fixture, LEFT_ARROW);
+    expect(document.activeElement).toBe(chips(root)[4]);
+
+    await press(fixture, HOME);
+    expect(document.activeElement).toBe(chips(root)[0]);
+    expect(tabStops(root)).toEqual([0]);
+  });
+
+  it('does not wrap at the ends', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    chips(root)[0].focus();
+    await press(fixture, LEFT_ARROW);
+    expect(document.activeElement).toBe(chips(root)[0]);
+
+    chips(root)[5].focus();
+    await press(fixture, RIGHT_ARROW);
+    expect(document.activeElement).toBe(chips(root)[5]);
+  });
+
+  it('skips the disabled weeks', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.minDate.set(new Date(2026, 10, 10)); // weeks 44, 45 disabled
+    fixture.componentInstance.maxDate.set(new Date(2026, 10, 20)); // weeks 48, 49 disabled
+    await flush(fixture);
+    chips(root)[2].focus();
+
+    await press(fixture, HOME);
+    expect(document.activeElement).toBe(chips(root)[2]);
+    await press(fixture, END);
+    expect(document.activeElement).toBe(chips(root)[3]);
+  });
+
+  it('reverses the arrow keys in right-to-left layouts', async () => {
+    const { fixture, root } = setupCalendar(CalendarHost, {
+      providers: [
+        {
+          provide: Directionality,
+          useValue: { value: 'rtl', valueSignal: signal('rtl'), change: of('rtl') },
+        },
+      ],
+    });
+    await flush(fixture);
+    chips(root)[2].focus();
+    await press(fixture, LEFT_ARROW);
+    expect(document.activeElement).toBe(chips(root)[3]);
   });
 });
 
