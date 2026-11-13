@@ -275,7 +275,8 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 - The ruler is a `role="group"` named by `weekNumbers`; the visible caption (`week`) is hidden
   from screen readers.
 - Each week is a native `<button>` labelled by `formatWeekLabel(week, dayRange)` (e.g. "Week 46, 9 – 15");
-  the week of the selected date carries `aria-current="true"`.
+  like the day cells of the grid, the current week carries `aria-current="date"` and the weeks of
+  the selection `aria-pressed="true"` (both can be combined).
 - Clicking a week moves the focus to its first enabled day in the grid
   (`MatCalendar#focusActiveCell()`):
   keyboard users continue with the arrow keys, Enter selects. It does not select the date.

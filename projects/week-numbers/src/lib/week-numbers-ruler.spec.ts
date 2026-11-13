@@ -100,6 +100,9 @@ describe('DcWeekNumbersRuler', () => {
     const week46 = chips(root)[2];
     expect(week46.classList).toContain('dc-week-numbers-ruler__chip--selected');
     expect(week46.classList).toContain('dc-week-numbers-ruler__chip--today');
+    // Both announced to screen readers, with two distinct attributes.
+    expect(week46.getAttribute('aria-current')).toBe('date');
+    expect(week46.getAttribute('aria-pressed')).toBe('true');
   });
 
   it('exposes the days of each week as tooltip and accessible label', async () => {
@@ -109,13 +112,22 @@ describe('DcWeekNumbersRuler', () => {
     expect(tooltips(fixture)).toEqual(['1', '2 – 8', '9 – 15', '16 – 22', '23 – 29', '30']);
     expect(chips(root)[0].getAttribute('aria-label')).toBe('Semaine 44, 1');
     expect(chips(root)[2].getAttribute('aria-label')).toBe('Semaine 46, 9 – 15');
+    // Like the day cells of the grid: today → aria-current="date", selection → aria-pressed.
     expect(chips(root).map((chip) => chip.getAttribute('aria-current'))).toEqual([
       null,
+      null,
+      'date',
+      null,
+      null,
+      null,
+    ]);
+    expect(chips(root).map((chip) => chip.getAttribute('aria-pressed'))).toEqual([
+      'false',
       'true',
-      null,
-      null,
-      null,
-      null,
+      'false',
+      'false',
+      'false',
+      'false',
     ]);
     const group = root.querySelector('.dc-week-numbers-ruler__group')!;
     expect(group.getAttribute('role')).toBe('group');
