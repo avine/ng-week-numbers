@@ -17,14 +17,13 @@ import { provideDcWeekNumbersIntl } from './week-numbers-intl';
 import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-numbers-strategies';
 
 /**
- * Checks every locale shipped by date-fns against independent oracles:
+ * Checks one locale of each behavior class shipped by date-fns (see `behaviorClass`) against
+ * independent oracles:
  * - week numbers are recomputed from their definition (no date-fns, no component code);
  * - expected digits come from the numbering system Intl resolves for the locale;
  * - days are located from the rendered grid (day number + column), and their distinct ISO weeks
  *   matched in order with the week buttons of the header.
  */
-
-const locales = Object.entries(dateFnsLocales as Record<string, Locale>);
 
 // ---------------------------------------------------------------------------
 // Oracles
@@ -74,6 +73,42 @@ function numberingFor(locale: Locale) {
       ),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Sample: one locale per behavior class
+// ---------------------------------------------------------------------------
+
+/**
+ * Goal: cover every behavior of the library without testing the ~95 date-fns locales one by
+ * one (20s). The library only depends on these parameters of a locale, so all the locales of a
+ * class go through exactly the same code: testing one of them is enough.
+ * - rows and numbering: `weekStartsOn`, `firstWeekContainsDate`;
+ * - day cells as Material writes them: numbering system, calendar (Persian for `fa-IR`), and
+ *   the shape of a day number ("5", "5.", "05", "5日"…).
+ * A date-fns release that brings a new combination adds a class, tested automatically.
+ */
+function behaviorClass(locale: Locale): string {
+  const dayFormat = new Intl.DateTimeFormat(locale.code, { day: 'numeric', timeZone: 'utc' });
+  const { numberingSystem, calendar } = dayFormat.resolvedOptions();
+  const dayShape = stripBidi(dayFormat.format(Date.UTC(2017, 0, 5))).replace(/\p{Nd}/gu, '#');
+  return [
+    locale.options?.weekStartsOn ?? 0,
+    locale.options?.firstWeekContainsDate ?? 1,
+    numberingSystem,
+    calendar,
+    dayShape,
+  ].join(' ');
+}
+
+/** First locale of each behavior class, e.g. `ca` for the ~30 locales like `de` and `fr`. */
+const locales = (() => {
+  const sample = new Map<string, [string, Locale]>();
+  for (const entry of Object.entries(dateFnsLocales as Record<string, Locale>)) {
+    const key = behaviorClass(entry[1]);
+    if (!sample.has(key)) sample.set(key, entry);
+  }
+  return [...sample.values()];
+})();
 
 // ---------------------------------------------------------------------------
 // Pure strategies, every day from 2000 to 2040

@@ -114,9 +114,12 @@ as the day cells (Arabic-Indic for `arEG`, Bengali for `bn`, Persian for `faIR`â
 
 ### Tested locales
 
-`week-numbers.locales.spec.ts` checks **every locale exported by `date-fns/locale`** (95)
-against independent oracles (week numbers recomputed from their definition, digits from the
-numbering system Intl resolves, days located from the rendered DOM):
+`week-numbers.locales.spec.ts` covers **every locale exported by `date-fns/locale`** (95) by
+behavior class: the locales are grouped by the only parameters the library depends on (first
+day of the week, `firstWeekContainsDate`, numbering system, calendar, shape of the day numbers),
+and one locale per class (15) is checked against independent oracles (week numbers recomputed
+from their definition, digits from the numbering system Intl resolves, days located from the
+rendered DOM):
 
 - both strategies (`dcIsoWeekNumber`, `dcLocaleWeekNumber`), every day from 2000 to 2040;
 - the rendered calendar (one button per ISO week of the displayed days, in order, digits), every
