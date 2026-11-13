@@ -32,11 +32,11 @@ adapter, the week numbers are not displayed and an error is logged in dev mode.
 
 Three layers, from the simplest to use to the one that does the work:
 
-| Layer                 | What it is                                                     | Use it when                       |
-| --------------------- | -------------------------------------------------------------- | --------------------------------- |
-| `dcWeekNumbers`       | Directive: sets `DcWeekNumbersHeader` as the calendar header   | Default: one attribute            |
-| `DcWeekNumbersHeader` | Header: `<mat-calendar-header />` + `<dc-week-numbers-ruler />` | Binding the header explicitly     |
-| `DcWeekNumbersRuler`  | **The week ruler itself: all the behavior lives here**         | Building a [custom header](#custom-header) |
+| Layer                 | What it is                                                      | Use it when                                |
+| --------------------- | --------------------------------------------------------------- | ------------------------------------------ |
+| `dcWeekNumbers`       | Directive: sets `DcWeekNumbersHeader` as the calendar header    | Default: one attribute                     |
+| `DcWeekNumbersHeader` | Header: `<mat-calendar-header />` + `<dc-week-numbers-ruler />` | Binding the header explicitly              |
+| `DcWeekNumbersRuler`  | **The week ruler itself: all the behavior lives here**          | Building a [custom header](#custom-header) |
 
 Start with the directive; read `DcWeekNumbersRuler` to understand how the week numbers are
 computed and rendered. The directive and the header only place the ruler in the calendar header.
