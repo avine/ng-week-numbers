@@ -12,7 +12,7 @@
         [aria-current]="chip.selected ? 'true' : null"
         [matTooltip]="chip.dayRange"
         [matTooltipShowDelay]="500"
-        [disabled]="chip.disabled"
+        [disabled]="chip.firstEnabledDate === null"
         (click)="activate(chip)"
       >
         {{ chip.weekNumber }}

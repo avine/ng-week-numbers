@@ -266,6 +266,50 @@ describe('DcWeekNumbersRuler', () => {
       true,
     );
   });
+
+  it('disables the weeks whose days are all rejected by dateFilter, and follows its changes', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    expect(chips(root).every((chip) => !chip.disabled)).toBe(true);
+
+    // Weekdays only: week 44 (Sunday Nov 1 only) has no enabled day.
+    fixture.componentInstance.dateFilter.set((date) => date.getDay() !== 0 && date.getDay() !== 6);
+    await flush(fixture);
+    expect(chips(root).map((chip) => chip.disabled)).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ]);
+  });
+
+  it('click: moves to the first day of the week accepted by dateFilter', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.dateFilter.set((date) => date.getDay() !== 1); // no Mondays
+    await flush(fixture);
+    chips(root)[2].click(); // week 46: Monday Nov 9 is rejected
+    // Focus: the ruler's 1ms timer, then Material's afterNextRender + setTimeout.
+    await flush(fixture);
+    await flush(fixture);
+    expect(sameDay(fixture.componentInstance.calendar().activeDate, new Date(2026, 10, 10))).toBe(
+      true,
+    );
+    expect(document.activeElement!.textContent!.trim()).toBe('10');
+  });
+
+  it('combines minDate and dateFilter', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.minDate.set(new Date(2026, 10, 10)); // Tuesday
+    fixture.componentInstance.dateFilter.set((date) => date.getDay() !== 2); // no Tuesdays
+    await flush(fixture);
+    chips(root)[2].click(); // week 46: Nov 9 < minDate, Nov 10 rejected -> Nov 11
+    await flush(fixture);
+    expect(sameDay(fixture.componentInstance.calendar().activeDate, new Date(2026, 10, 11))).toBe(
+      true,
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

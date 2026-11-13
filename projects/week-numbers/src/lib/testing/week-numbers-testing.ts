@@ -105,6 +105,7 @@ export const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString
       [startAt]="startAt"
       [minDate]="minDate()"
       [maxDate]="maxDate()"
+      [dateFilter]="dateFilter()"
       [(selected)]="selected"
     />
   `,
@@ -114,6 +115,7 @@ export class CalendarHost {
   startAt = new Date(2026, 10, 5); // Thursday, November 5th 2026
   readonly minDate = signal<Date | null>(null);
   readonly maxDate = signal<Date | null>(null);
+  readonly dateFilter = signal<(date: Date) => boolean>(() => true);
   selected: Date | null = null;
   readonly calendar = viewChild.required<MatCalendar<Date>>(MatCalendar);
 }

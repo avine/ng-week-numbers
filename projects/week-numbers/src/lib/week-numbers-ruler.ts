@@ -24,14 +24,16 @@ interface WeekChip {
   readonly dayRange: string;
   /** Read by screen readers (`aria-label`), e.g. `Week 46, 9 – 15`. */
   readonly ariaLabel: string;
-  /** First day of the week in the displayed month: activated on click. */
-  readonly firstDate: Date;
+  /**
+   * First enabled day of the week in the displayed month (within `minDate` / `maxDate`, accepted
+   * by `dateFilter`, like the day cells): activated on click. `null` when no day is enabled,
+   * which disables the button.
+   */
+  readonly firstEnabledDate: Date | null;
   /** The week contains the selected date (or a day of the selected range) in the month. */
   readonly selected: boolean;
   /** The week contains today. */
   readonly today: boolean;
-  /** Every day of the week in the displayed month is out of `minDate` / `maxDate`. */
-  readonly disabled: boolean;
 }
 
 interface CalendarState {
@@ -40,6 +42,7 @@ interface CalendarState {
   readonly currentView: MatCalendarView;
   readonly minDate: Date | null;
   readonly maxDate: Date | null;
+  readonly dateFilter: ((date: Date) => boolean) | null;
 }
 
 /**
@@ -58,13 +61,15 @@ interface CalendarState {
  *   selected (with a range, every week it covers), and outlined when it contains today. A week
  *   whose selected day falls in the previous or next month is not filled, since the grid does
  *   not show that day.
+ * - **Disabled like the day cells.** A week is disabled when none of its days in the month is
+ *   enabled: out of `minDate` / `maxDate`, or rejected by `dateFilter`.
  * - **Click navigates, does not select.** It moves the active date and the focus to the first
- *   day of the week in the displayed month, or to `minDate` when that day is earlier.
+ *   enabled day of the week in the displayed month.
  * - **Month view only.** Hidden in the year and multi-year views.
  *
  * Meant to be rendered in a calendar header, i.e. inside `mat-calendar`: it only uses the
  * public API of `MatCalendar` (`activeDate`, `selected`, `currentView`, `minDate`, `maxDate`,
- * `stateChanges`, `focusActiveCell()`), never its DOM. `DcWeekNumbersHeader` combines it with
+ * `dateFilter`, `stateChanges`, `focusActiveCell()`), never its DOM. `DcWeekNumbersHeader` combines it with
  * the standard Material header; a custom header can embed `<dc-week-numbers-ruler />` the same way.
  *
  * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it, and the labels
@@ -95,7 +100,7 @@ export class DcWeekNumbersRuler {
 
   /**
    * Reactive calendar state, refreshed on every state change (navigation, view, inputs such as
-   * `selected`, `minDate`, `maxDate`).
+   * `selected`, `minDate`, `maxDate`, `dateFilter`).
    */
   private readonly calendarState = toSignal(
     // `localeChanges`: locale weeks follow the locale, digits its numbering system.
@@ -106,8 +111,8 @@ export class DcWeekNumbersRuler {
   );
 
   private calendarStateSnapshot(): CalendarState {
-    const { activeDate, selected, currentView, minDate, maxDate } = this.calendar;
-    return { activeDate, selected, currentView, minDate, maxDate };
+    const { activeDate, selected, currentView, minDate, maxDate, dateFilter } = this.calendar;
+    return { activeDate, selected, currentView, minDate, maxDate, dateFilter: dateFilter ?? null };
   }
 
   protected readonly isMonthView = computed(() => this.calendarState().currentView === 'month');
@@ -123,7 +128,7 @@ export class DcWeekNumbersRuler {
     if (!adapter) return [];
 
     // 2. Inputs: `calendarState` and `intl` are the only reactive dependencies.
-    const { activeDate, selected, minDate, maxDate } = this.calendarState();
+    const { activeDate, selected, minDate, maxDate, dateFilter } = this.calendarState();
     const intl = this.intl();
 
     // 3. Displayed month: the month of `activeDate` (its day does not matter).
@@ -142,6 +147,12 @@ export class DcWeekNumbersRuler {
     const digits = localeDigits(dateNames);
     // Selection as a [start, end] interval (a single date: start = end).
     const [selectionStart, selectionEnd] = selectionBounds(selected);
+    // Same rule as the day cells of `mat-month-view`: a day is enabled within [minDate, maxDate]
+    // and when `dateFilter` accepts it.
+    const isEnabled = (date: Date) =>
+      (minDate === null || adapter.compareDate(date, minDate) >= 0) &&
+      (maxDate === null || adapter.compareDate(date, maxDate) <= 0) &&
+      (dateFilter === null || dateFilter(date));
     // Day of month of today, `null` when today is in another month.
     const today = adapter.today();
     const todayDay =
@@ -164,6 +175,11 @@ export class DcWeekNumbersRuler {
       while (lastDay < numDays && weeks[lastDay] === week) lastDay++;
       const firstDate = adapter.createDate(year, month, firstDay);
       const lastDate = adapter.createDate(year, month, lastDay);
+      let firstEnabledDate: Date | null = null;
+      for (let day = firstDay; day <= lastDay && firstEnabledDate === null; day++) {
+        const date = adapter.createDate(year, month, day);
+        if (isEnabled(date)) firstEnabledDate = date;
+      }
 
       // 7. Days of the month in the week, e.g. `9 – 15`, or `1`: tooltip and accessible label.
       const dayRange =
@@ -176,7 +192,7 @@ export class DcWeekNumbersRuler {
         weekNumber: formatWeekNumber(week, digits),
         dayRange,
         ariaLabel: intl.formatWeekLabel(week, dayRange),
-        firstDate,
+        firstEnabledDate,
         // Interval overlap: [selectionStart, selectionEnd] ∩ [firstDate, lastDate] ≠ ∅.
         selected:
           selectionStart !== null &&
@@ -184,10 +200,6 @@ export class DcWeekNumbersRuler {
           adapter.compareDate(selectionStart, lastDate) <= 0 &&
           adapter.compareDate(selectionEnd, firstDate) >= 0,
         today: todayDay !== null && todayDay >= firstDay && todayDay <= lastDay,
-        // Every day of the week in the month is out of [minDate, maxDate].
-        disabled:
-          (minDate !== null && adapter.compareDate(lastDate, minDate) < 0) ||
-          (maxDate !== null && adapter.compareDate(firstDate, maxDate) > 0),
       });
       firstDay = lastDay + 1;
     }
@@ -197,8 +209,10 @@ export class DcWeekNumbersRuler {
   });
 
   protected activate(chip: WeekChip): void {
-    // Clamped to minDate / maxDate by MatCalendar. Moves the active cell, does not select it.
-    this.calendar.activeDate = chip.firstDate;
+    // Disabled chips cannot be clicked: this guard only narrows the type.
+    if (chip.firstEnabledDate === null) return;
+    // Moves the active cell, does not select it.
+    this.calendar.activeDate = chip.firstEnabledDate;
     // Material only draws the focus indicator of the active day for a keyboard / program focus.
     // The CDK FocusMonitor attributes a focus to the mouse until a 1ms timer, started on
     // mousedown, expires; Material moves the focus with a 0ms timer. On a fast click (trackpad

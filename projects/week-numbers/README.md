@@ -16,12 +16,14 @@ depends on those days only.
   selected (with a range, every week it covers), and outlined when it contains today. A week
   whose selected day falls in the previous or next month is not filled, since the grid does not
   show that day.
-- **Click navigates, does not select.** It moves the active date and the focus to the first day
-  of the week in the displayed month, or to `minDate` when that day is earlier.
+- **Disabled like the day cells.** A week is disabled when none of its days in the month is
+  enabled: out of `minDate` / `maxDate`, or rejected by `dateFilter`.
+- **Click navigates, does not select.** It moves the active date and the focus to the first
+  enabled day of the week in the displayed month.
 - **Month view only.** Hidden in the year and multi-year views.
 
 Only the public API of `MatCalendar` is used (`activeDate`, `selected`, `currentView`, `minDate`, `maxDate`,
-`stateChanges`, `focusActiveCell()`): the calendar grid and its DOM are left untouched.
+`dateFilter`, `stateChanges`, `focusActiveCell()`): the calendar grid and its DOM are left untouched.
 
 Verified against **Angular / Angular Material 22.2** — zoneless, SSR-compatible (no-op on the server).
 
@@ -274,10 +276,11 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
   from screen readers.
 - Each week is a native `<button>` labelled by `formatWeekLabel(week, dayRange)` (e.g. "Week 46, 9 – 15");
   the week of the selected date carries `aria-current="true"`.
-- Clicking a week moves the focus to its first day in the grid, or to `minDate` when that day is
-  earlier (`MatCalendar#focusActiveCell()`):
+- Clicking a week moves the focus to its first enabled day in the grid
+  (`MatCalendar#focusActiveCell()`):
   keyboard users continue with the arrow keys, Enter selects. It does not select the date.
-- Weeks entirely outside `minDate` / `maxDate` are disabled.
+- Weeks without any enabled day (out of `minDate` / `maxDate`, or rejected by `dateFilter`) are
+  disabled.
 - Visible focus ring (`:focus-visible`).
 - Material keyboard navigation in the grid is unaffected; the ruler follows it.
 
