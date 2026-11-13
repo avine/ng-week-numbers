@@ -16,7 +16,7 @@ export const appConfig: ApplicationConfig = {
       signal({
         weekNumbers: 'Week numbers',
         week: 'Week',
-        formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
+        formatWeekLabel: (week, dayRange) => `Week ${week}, ${dayRange}`,
       }),
     ),
   ],

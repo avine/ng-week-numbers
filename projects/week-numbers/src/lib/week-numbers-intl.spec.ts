@@ -7,11 +7,7 @@ import {
   FR_LABELS,
   setupCalendar,
 } from './testing/week-numbers-testing';
-import {
-  DC_WEEK_NUMBERS_INTL,
-  DC_WEEK_NUMBERS_INTL_EN,
-  provideDcWeekNumbersIntl,
-} from './week-numbers-intl';
+import { DC_WEEK_NUMBERS_INTL, provideDcWeekNumbersIntl } from './week-numbers-intl';
 
 const caption = (root: ParentNode) =>
   root.querySelector('.dc-week-numbers-ruler__caption')!.textContent;
@@ -21,9 +17,8 @@ const groupName = (root: ParentNode) =>
 describe('DC_WEEK_NUMBERS_INTL / provideDcWeekNumbersIntl', () => {
   afterEach(() => vi.restoreAllMocks());
 
-  it('defaults to English', () => {
-    expect(TestBed.inject(DC_WEEK_NUMBERS_INTL)()).toBe(DC_WEEK_NUMBERS_INTL_EN);
-    expect(DC_WEEK_NUMBERS_INTL_EN.formatWeekLabel(46, '9 – 15')).toBe('Week 46, 9 – 15');
+  it('is required: no default labels', () => {
+    expect(() => TestBed.inject(DC_WEEK_NUMBERS_INTL)).toThrowError(/DC_WEEK_NUMBERS_INTL/);
   });
 
   it('renders the provided labels', async () => {

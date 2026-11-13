@@ -21,7 +21,7 @@ describe('Demo', () => {
           useValue: signal({
             week: 'Week',
             weekNumbers: 'Week numbers',
-            formatWeekLabel: (week, days) => `Week ${week}, ${days}`,
+            formatWeekLabel: (week, dayRange) => `Week ${week}, ${dayRange}`,
           }) satisfies Signal<DcWeekNumbersIntl>,
         },
       ],

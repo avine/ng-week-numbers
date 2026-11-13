@@ -2,6 +2,7 @@ import {
   ApplicationRef,
   Component,
   provideZonelessChangeDetection,
+  signal,
   viewChild,
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -10,7 +11,9 @@ import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatCalendar } from '@angular/material/datepicker';
 import { format, type Locale } from 'date-fns';
 import * as dateFnsLocales from 'date-fns/locale';
+import { FR_LABELS } from './testing/week-numbers-testing';
 import { DcWeekNumbersHeader } from './week-numbers-header';
+import { provideDcWeekNumbersIntl } from './week-numbers-intl';
 import { dcIsoWeekNumber, dcLocaleWeekNumber } from './week-numbers-strategies';
 
 /**
@@ -141,6 +144,7 @@ describe.each(locales)('rendered calendar — %s', (_, locale) => {
         provideZonelessChangeDetection(),
         provideDateFnsAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: locale },
+        provideDcWeekNumbersIntl(signal(FR_LABELS)),
       ],
     });
     const fixture = TestBed.createComponent(Host);

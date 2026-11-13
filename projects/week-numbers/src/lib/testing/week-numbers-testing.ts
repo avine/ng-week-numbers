@@ -25,7 +25,7 @@ import { DcWeekNumbersRuler } from '../week-numbers-ruler';
 // Configuration
 // ---------------------------------------------------------------------------
 
-/** French labels: distinct from the English defaults, so the specs see which ones are used. */
+/** Labels provided by `setupCalendar()` (required by the ruler). */
 export const FR_LABELS: DcWeekNumbersIntl = {
   weekNumbers: 'Numéros de semaine',
   week: 'Sem.',

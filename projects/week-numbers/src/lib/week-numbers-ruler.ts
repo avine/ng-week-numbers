@@ -67,8 +67,8 @@ interface CalendarState {
  * `stateChanges`, `focusActiveCell()`), never its DOM. `DcWeekNumbersHeader` combines it with
  * the standard Material header; a custom header can embed `<dc-week-numbers-ruler />` the same way.
  *
- * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it. Labels come from
- * `DC_WEEK_NUMBERS_INTL`.
+ * Requires `DateFnsAdapter` (`provideDateFnsAdapter()`), or a subclass of it, and the labels
+ * (`provideDcWeekNumbersIntl()`).
  */
 @Component({
   selector: 'dc-week-numbers-ruler',
@@ -132,12 +132,13 @@ export class DcWeekNumbersRuler {
     const numDays = adapter.getNumDaysInMonth(activeDate);
 
     // 4. Shared by all weeks.
-    // Days 1 → 31 written as in the grid cells (index 0 = day 1), for the tooltips (`9 – 15`).
-    // Usually just "1"…"31", but not always: some locales use other digits ("١"…"٣١" in `ar-EG`)
-    // or add a suffix ("1."…"31." in `cs`). Reusing the grid's text keeps the tooltips consistent.
+    // Goal: write day ranges ("9 – 15") exactly like the grid. `String(day)` is not enough:
+    // `ar-EG` shows "١٥", `cs` shows "15.". So reuse the text Material puts in each day cell
+    // (index 0 = day 1). Used by the tooltip and the accessible label.
     const dateNames = adapter.getDateNames();
-    // The ten digits 0 → 9 used in those cells, so the week numbers are written with the same
-    // digits as the days (`null`: Latin digits).
+    // Goal: write the week number ("46") with the same digits as the grid ("٤٦" in `ar-EG`).
+    // No cell shows "46": deduce the locale's ten digits 0 → 9 from the cell texts above
+    // (`null`: Latin digits). Used by the visible week number of the button.
     const digits = localeDigits(dateNames);
     // Selection as a [start, end] interval (a single date: start = end).
     const [selectionStart, selectionEnd] = selectionBounds(selected);
@@ -164,7 +165,7 @@ export class DcWeekNumbersRuler {
       const firstDate = adapter.createDate(year, month, firstDay);
       const lastDate = adapter.createDate(year, month, lastDay);
 
-      // 7. Tooltip: days of the month in the week, e.g. `9 – 15`, or `1`.
+      // 7. Days of the month in the week, e.g. `9 – 15`, or `1`: tooltip and accessible label.
       const dayRange =
         firstDay === lastDay
           ? dateNames[firstDay - 1]

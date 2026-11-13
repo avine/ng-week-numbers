@@ -52,6 +52,26 @@ Peer dependencies: `@angular/core`, `@angular/material`, `@angular/material-date
 
 ## Usage
 
+Provide the labels of the ruler, in the application's language (required, no default):
+
+```ts
+import { signal } from '@angular/core';
+import { provideDcWeekNumbersIntl } from 'ng-week-numbers';
+
+providers: [
+  provideDcWeekNumbersIntl(
+    signal({
+      weekNumbers: 'Week numbers',
+      week: 'Wk',
+      formatWeekLabel: (week, dayRange) => `Week ${week}, ${dayRange}`,
+    }),
+  ),
+];
+```
+
+See [Labels (i18n)](#labels-i18n) for what each label is and how to switch language at runtime.
+Then add the directive to the calendar:
+
 ```ts
 import { DcWeekNumbers } from 'ng-week-numbers';
 
@@ -119,10 +139,10 @@ Gregorian calendar in the locale code.
 
 ### Labels (i18n)
 
-Labels default to English (`DC_WEEK_NUMBERS_INTL_EN`: "Week numbers", "Wk", "Week 46, 9 – 15").
-To translate them, provide a `Signal<DcWeekNumbersIntl>` with `provideDcWeekNumbersIntl()`, for
-the whole application or in the `providers` of a component. The labels of the Material header
-itself come from `MatDatepickerIntl`, as usual.
+Labels are required, there is no default: provide a `Signal<DcWeekNumbersIntl>` with
+`provideDcWeekNumbersIntl()`, for the whole application or in the `providers` of a component.
+Without them, creating the ruler throws a `NullInjectorError` for `DC_WEEK_NUMBERS_INTL`. The
+labels of the Material header itself come from `MatDatepickerIntl`, as usual.
 
 ```ts
 import { signal } from '@angular/core';
@@ -139,6 +159,14 @@ providers: [
     }),
   ),
 ];
+```
+
+`week` is a number, written with Latin digits when interpolated as is, while `dayRange` is
+already written like the day cells. For a locale with other digits, format `week` yourself:
+
+```ts
+formatWeekLabel: (week, dayRange) => `الأسبوع ${week.toLocaleString('ar-EG')}، ${dayRange}`,
+// "الأسبوع ٤٦، ٩ – ١٥"
 ```
 
 To switch language at runtime, set a new object on the signal: an open calendar updates

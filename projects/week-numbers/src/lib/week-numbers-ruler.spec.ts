@@ -1,4 +1,4 @@
-import { Component, provideZonelessChangeDetection } from '@angular/core';
+import { Component, provideZonelessChangeDetection, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { DateAdapter, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { DateRange, MatCalendar } from '@angular/material/datepicker';
@@ -8,6 +8,7 @@ import {
   chips,
   CustomHeader,
   flush,
+  FR_LABELS,
   NOVEMBER_2026,
   RangeHost,
   sameDay,
@@ -18,6 +19,7 @@ import {
   weekNumbers,
 } from './testing/week-numbers-testing';
 import { provideDcWeekNumberFn } from './week-numbers-config';
+import { provideDcWeekNumbersIntl } from './week-numbers-intl';
 import { dcLocaleWeekNumber } from './week-numbers-strategies';
 
 const clickDay = (root: ParentNode, day: number) =>
@@ -382,6 +384,7 @@ describe('DcWeekNumbersRuler — date adapter', () => {
         provideZonelessChangeDetection(),
         provideNativeDateAdapter(),
         { provide: MAT_DATE_LOCALE, useValue: 'fr-FR' },
+        provideDcWeekNumbersIntl(signal(FR_LABELS)),
       ],
     });
     const fixture = TestBed.createComponent(CalendarHost);
