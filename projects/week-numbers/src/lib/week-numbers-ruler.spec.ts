@@ -36,6 +36,13 @@ function pressKey(target: Element, keyCode: number): void {
 
 const DOWN_ARROW = 40;
 
+/** `@angular/aria` reads `KeyboardEvent#key` (Material reads `keyCode`: see `pressKey`). */
+const pressKeyName = (target: Element, key: string) =>
+  target.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
+
+/** Soft-disabled by the toolbar: `aria-disabled`, still focusable (no native `disabled`). */
+const isDisabled = (chip: HTMLButtonElement) => chip.getAttribute('aria-disabled') === 'true';
+
 const nextMonth = (root: ParentNode) =>
   root.querySelector<HTMLButtonElement>('.mat-calendar-next-button')!.click();
 const previousMonth = (root: ParentNode) =>
@@ -130,7 +137,7 @@ describe('DcWeekNumbersRuler', () => {
       'false',
     ]);
     const group = root.querySelector('.dc-week-numbers-ruler__group')!;
-    expect(group.getAttribute('role')).toBe('group');
+    expect(group.getAttribute('role')).toBe('toolbar');
     expect(group.getAttribute('aria-label')).toBe('Numéros de semaine');
     expect(
       group.querySelector('.dc-week-numbers-ruler__caption')!.getAttribute('aria-hidden'),
@@ -263,7 +270,7 @@ describe('DcWeekNumbersRuler', () => {
     fixture.componentInstance.minDate.set(new Date(2026, 10, 10));
     fixture.componentInstance.maxDate.set(new Date(2026, 10, 20));
     await flush(fixture);
-    expect(chips(root).map((chip) => chip.disabled)).toEqual([
+    expect(chips(root).map(isDisabled)).toEqual([
       true,
       true,
       false,
@@ -282,12 +289,12 @@ describe('DcWeekNumbersRuler', () => {
   it('disables the weeks whose days are all rejected by dateFilter, and follows its changes', async () => {
     const { fixture, root } = setup();
     await flush(fixture);
-    expect(chips(root).every((chip) => !chip.disabled)).toBe(true);
+    expect(chips(root).some(isDisabled)).toBe(false);
 
     // Weekdays only: week 44 (Sunday Nov 1 only) has no enabled day.
     fixture.componentInstance.dateFilter.set((date) => date.getDay() !== 0 && date.getDay() !== 6);
     await flush(fixture);
-    expect(chips(root).map((chip) => chip.disabled)).toEqual([
+    expect(chips(root).map(isDisabled)).toEqual([
       true,
       false,
       false,
@@ -321,6 +328,83 @@ describe('DcWeekNumbersRuler', () => {
     expect(sameDay(fixture.componentInstance.calendar().activeDate, new Date(2026, 10, 11))).toBe(
       true,
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Keyboard: one tab stop (`@angular/aria` toolbar)
+// ---------------------------------------------------------------------------
+
+describe('DcWeekNumbersRuler — keyboard', () => {
+  const setup = () => setupCalendar(CalendarHost);
+  const tabStops = (root: ParentNode) =>
+    chips(root).flatMap((chip, i) => (chip.getAttribute('tabindex') === '0' ? [i] : []));
+
+  it('one tab stop for the whole ruler: the first week', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.selected = new Date(2026, 10, 12);
+    await flush(fixture);
+    expect(tabStops(root)).toEqual([0]);
+    expect(chips(root).slice(1).every((chip) => chip.getAttribute('tabindex') === '-1')).toBe(
+      true,
+    );
+  });
+
+  it('arrow keys, Home and End move the focus and the tab stop', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    chips(root)[0].focus();
+
+    pressKeyName(chips(root)[0], 'ArrowRight');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[1]);
+    expect(tabStops(root)).toEqual([1]);
+
+    pressKeyName(chips(root)[1], 'End');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[5]);
+
+    pressKeyName(chips(root)[5], 'ArrowLeft');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[4]);
+
+    pressKeyName(chips(root)[4], 'Home');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[0]);
+    expect(tabStops(root)).toEqual([0]);
+  });
+
+  it('wraps at the ends', async () => {
+    const { fixture, root } = setup();
+    await flush(fixture);
+    chips(root)[0].focus();
+
+    pressKeyName(chips(root)[0], 'ArrowLeft');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[5]);
+
+    pressKeyName(chips(root)[5], 'ArrowRight');
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[0]);
+  });
+
+  it('disabled weeks stay focusable, but clicking them does nothing', async () => {
+    const { fixture, root } = setup();
+    fixture.componentInstance.minDate.set(new Date(2026, 10, 10));
+    await flush(fixture);
+    const calendar = fixture.componentInstance.calendar();
+    const activeDate = calendar.activeDate;
+    expect(isDisabled(chips(root)[0])).toBe(true);
+
+    chips(root)[0].focus(); // the tab stop: week 44, disabled
+    pressKeyName(chips(root)[0], 'ArrowRight'); // week 45, disabled too
+    await flush(fixture);
+    expect(document.activeElement).toBe(chips(root)[1]);
+
+    chips(root)[1].click();
+    await flush(fixture);
+    await flush(fixture);
+    expect(sameDay(calendar.activeDate, activeDate)).toBe(true);
   });
 });
 

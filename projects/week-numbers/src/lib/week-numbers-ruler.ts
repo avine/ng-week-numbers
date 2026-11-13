@@ -10,6 +10,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { DateFnsAdapter } from '@angular/material-date-fns-adapter';
 import { DateAdapter } from '@angular/material/core';
 import { DateRange, MatCalendar, type MatCalendarView } from '@angular/material/datepicker';
+import { Toolbar, ToolbarWidget } from '@angular/aria/toolbar';
 import { MatTooltip } from '@angular/material/tooltip';
 import { map, merge } from 'rxjs';
 import { DC_WEEK_NUMBER_FN } from './week-numbers-config';
@@ -65,6 +66,9 @@ interface CalendarState {
  *   enabled: out of `minDate` / `maxDate`, or rejected by `dateFilter`.
  * - **Click navigates, does not select.** It moves the active date and the focus to the first
  *   enabled day of the week in the displayed month.
+ * - **Keyboard: one tab stop** (`@angular/aria` toolbar). Tab reaches the first week, the
+ *   arrow keys move between weeks (wrapping at the ends), Home / End go to the first / last.
+ *   Disabled weeks stay focusable (`aria-disabled`), so their tooltip still shows.
  * - **Month view only.** Hidden in the year and multi-year views.
  *
  * Meant to be rendered in a calendar header, i.e. inside `mat-calendar`: it only uses the
@@ -78,7 +82,7 @@ interface CalendarState {
 @Component({
   selector: 'dc-week-numbers-ruler',
   host: { class: 'dc-week-numbers-ruler' },
-  imports: [MatTooltip],
+  imports: [MatTooltip, Toolbar, ToolbarWidget],
   templateUrl: './week-numbers-ruler.html',
   styleUrl: './week-numbers-ruler.scss',
   encapsulation: ViewEncapsulation.None,
@@ -209,7 +213,7 @@ export class DcWeekNumbersRuler {
   });
 
   protected activate(chip: WeekChip): void {
-    // Disabled chips cannot be clicked: this guard only narrows the type.
+    // Disabled chips stay focusable and clickable (`aria-disabled`): this guard ignores them.
     if (chip.firstEnabledDate === null) return;
     // Moves the active cell, does not select it.
     this.calendar.activeDate = chip.firstEnabledDate;

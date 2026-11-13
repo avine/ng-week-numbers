@@ -52,7 +52,7 @@
     font-family: var(--mat-datepicker-calendar-text-font, var(--mat-sys-body-medium-font));
     font-size: var(--mat-datepicker-calendar-text-size, var(--mat-sys-body-medium-size));
 
-    &:hover:not(:disabled) {
+    &:hover:not([aria-disabled='true']) {
       background-color: var(
         --mat-datepicker-calendar-date-hover-state-background-color,
         color-mix(
@@ -68,7 +68,8 @@
       outline-offset: 2px;
     }
 
-    &:disabled {
+    // Soft-disabled by the toolbar: `aria-disabled`, no native `disabled` (still focusable).
+    &[aria-disabled='true'] {
       cursor: default;
       opacity: 0.38;
     }

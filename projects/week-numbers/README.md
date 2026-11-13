@@ -49,8 +49,8 @@ computed and rendered. The directive and the header only place the ruler in the 
 npm install ng-week-numbers
 ```
 
-Peer dependencies: `@angular/core`, `@angular/material`, `@angular/material-date-fns-adapter`,
-`date-fns`, `rxjs`. No stylesheet to import: styles ship with the component.
+Peer dependencies: `@angular/core`, `@angular/material`, `@angular/aria` (keyboard navigation
+of the ruler), `@angular/material-date-fns-adapter`, `date-fns`, `rxjs`. No stylesheet to import: styles ship with the component.
 
 ## Usage
 
@@ -272,8 +272,10 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 ## Accessibility
 
-- The ruler is a `role="group"` named by `weekNumbers`; the visible caption (`week`) is hidden
-  from screen readers.
+- The ruler is a `role="toolbar"` (`@angular/aria`) named by `weekNumbers`; the visible caption
+  (`week`) is hidden from screen readers.
+- One tab stop for the whole ruler: Tab reaches the first week, the arrow keys move between weeks
+  (wrapping at the ends, reversed in right-to-left layouts), Home / End go to the first / last.
 - Each week is a native `<button>` labelled by `formatWeekLabel(week, dayRange)` (e.g. "Week 46, 9 – 15");
   like the day cells of the grid, the current week carries `aria-current="date"` and the weeks of
   the selection `aria-pressed="true"` (both can be combined).
@@ -281,7 +283,8 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
   (`MatCalendar#focusActiveCell()`):
   keyboard users continue with the arrow keys, Enter selects. It does not select the date.
 - Weeks without any enabled day (out of `minDate` / `maxDate`, or rejected by `dateFilter`) are
-  disabled.
+  disabled with `aria-disabled`: they stay focusable, so keyboard and screen reader users can
+  still reach them, and their tooltip still shows. Clicking them does nothing.
 - Visible focus ring (`:focus-visible`).
 - Material keyboard navigation in the grid is unaffected; the ruler follows it.
 

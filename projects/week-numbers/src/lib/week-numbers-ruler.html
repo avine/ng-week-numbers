@@ -1,9 +1,10 @@
 @if (isMonthView() && weekChips().length) {
-  <div class="dc-week-numbers-ruler__group" role="group" [aria-label]="intl().weekNumbers">
+  <div class="dc-week-numbers-ruler__group" ngToolbar [aria-label]="intl().weekNumbers">
     <span class="dc-week-numbers-ruler__caption" aria-hidden="true">{{ intl().week }}</span>
 
     @for (chip of weekChips(); track $index) {
       <button
+        ngToolbarWidget
         type="button"
         class="dc-week-numbers-ruler__chip"
         [class.dc-week-numbers-ruler__chip--today]="chip.today"
