@@ -293,4 +293,9 @@ No `dcWeekNumbers` here: the custom header already contains the week ruler.
 
 Public Material API only, verified against Angular Material 22.2. The weeks of the ruler are
 matched against the rows `mat-month-view` renders for the locale's first day of the week;
-`week-numbers.locales.spec.ts` checks this against the rendered grid for every date-fns locale.
+`week-numbers.locales.spec.ts` checks this against the rendered grid for one date-fns locale of
+each behavior class (see [Tested locales](#tested-locales)).
+
+## License
+
+MIT

@@ -1,6 +1,29 @@
 {
   "name": "ng-week-numbers",
-  "version": "0.0.1",
+  "version": "0.5.0",
+  "description": "Week numbers (ISO 8601 by default) in the header of the Angular Material datepicker, date range picker and calendar.",
+  "keywords": [
+    "angular",
+    "angular-material",
+    "datepicker",
+    "calendar",
+    "week-number",
+    "iso-week",
+    "iso-8601",
+    "date-fns",
+    "accessibility"
+  ],
+  "author": "Stéphane Francel",
+  "license": "MIT",
+  "homepage": "https://github.com/avine/ng-week-numbers/tree/main/projects/week-numbers#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avine/ng-week-numbers.git",
+    "directory": "projects/week-numbers"
+  },
+  "bugs": {
+    "url": "https://github.com/avine/ng-week-numbers/issues"
+  },
   "peerDependencies": {
     "@angular/cdk": "^22.2.0",
     "@angular/core": "^22.2.0",
